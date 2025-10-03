@@ -3,7 +3,7 @@ import supabase from '../supabaseClient.js';
 const router = express.Router();
 
 // 取得全部志工資訊
-app.get('/volunteers', async (req, res) => {
+router.get('/', async (req, res) => {
   const { data, error } = await supabase
     .from('志工資訊')
     .select('*');
@@ -13,7 +13,7 @@ app.get('/volunteers', async (req, res) => {
 });
 
 // 依 GUID 取得單一志工資訊
-app.get('/volunteers/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
     .from('志工資訊')
@@ -26,7 +26,7 @@ app.get('/volunteers/:id', async (req, res) => {
 });
 
 // 新增志工資訊
-app.post('/volunteers', async (req, res) => {
+router.post('/', async (req, res) => {
   const newVolunteer = req.body;
   const { data, error } = await supabase
     .from('志工資訊')
@@ -37,7 +37,7 @@ app.post('/volunteers', async (req, res) => {
 });
 
 // 更新志工資訊
-app.put('/volunteers/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
   updates.updated_at = new Date(); // 更新時間
@@ -52,7 +52,7 @@ app.put('/volunteers/:id', async (req, res) => {
 });
 
 // 刪除志工資訊
-app.delete('/volunteers/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
     .from('志工資訊')
