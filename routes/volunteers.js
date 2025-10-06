@@ -12,13 +12,13 @@ router.get('/', async (req, res) => {
   res.json(data);
 });
 
-// 依 GUID 取得單一志工資訊
+// 依 V_LineID 取得單一志工資訊
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
     .from('志工資訊')
     .select('*')
-    .eq('GUID', id)
+    .eq('V_LineID', id)
     .single();
 
   if (error) return res.status(404).json({ error: error.message });
@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
 });
 
 // 更新志工資訊
-router.put('/:id', async (req, res) => {
+router.patch('/:id', async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
   updates.updated_at = new Date(); // 更新時間
@@ -45,7 +45,7 @@ router.put('/:id', async (req, res) => {
   const { data, error } = await supabase
     .from('志工資訊')
     .update(updates)
-    .eq('GUID', id);
+    .eq('V_LineID', id);
 
   if (error) return res.status(400).json({ error: error.message });
   res.json(data);
@@ -57,7 +57,7 @@ router.delete('/:id', async (req, res) => {
   const { data, error } = await supabase
     .from('志工資訊')
     .delete()
-    .eq('GUID', id);
+    .eq('V_LineID', id);
 
   if (error) return res.status(400).json({ error: error.message });
   res.json({ message: '志工資訊已刪除', data });
