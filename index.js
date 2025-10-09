@@ -4,6 +4,7 @@ import cors from "cors";
 import volunteersRouter from "./routes/volunteers.js";
 import consultationsRouter from "./routes/consultations.js";
 import identifyRouter from "./routes/identify.js";
+import appointmentsRouter from "./routes/appointments.js";
 
 const app = express();
 app.use(cors());                // ✅ 允許跨域請求
@@ -15,6 +16,8 @@ app.use("/identify", identifyRouter);
 app.use("/volunteers", volunteersRouter);
 // 掛載「看診資訊」路由
 app.use("/consultations", consultationsRouter);
+// 掛載「預約志工」路由
+app.use("/appointments", appointmentsRouter);
 
 app.listen(3001, () => {
   console.log("Server running at http://localhost:3001");
