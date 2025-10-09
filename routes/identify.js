@@ -12,7 +12,7 @@ router.get("/:id", async (req, res) => {
     const { data: volunteer, error: volunteerError } = await supabase
       .from("志工資訊")
       .select("*")
-      .eq("V_UserID", id)
+      .eq("volunteer_user_id", id)
       .maybeSingle(); // 改用 maybeSingle 避免空結果報錯
 
     if (volunteerError) throw volunteerError;
@@ -25,7 +25,7 @@ router.get("/:id", async (req, res) => {
     const { data: elder, error: elderError } = await supabase
       .from("長者資訊")
       .select("*")
-      .eq("O_UserID", id)
+      .eq("elder_user_id", id)
       .maybeSingle();
 
     if (elderError) throw elderError;

@@ -12,14 +12,14 @@ router.get("/", async (req, res) => {
 
 // 2️⃣ 新增看診資訊
 router.post("/", async (req, res) => {
-  const { O_UserID, O_Name, V_UserID, V_Name, S_Time, S_Information, Note } = req.body;  //變數接(插入用變數)-是否不用分開寫
+  const newConsulatation = req.body;
 
-  const { data, error } = await supabase.from(table).insert(
-    { O_UserID, O_Name, V_UserID, V_Name, S_Time, S_Information, Note }
-  ).select();   //刪除陣列 
+  const { data, error } = await supabase
+    .from(table)
+    .insert([newConsulatation]);
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(data[0]);
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(201).json(data);
 });
 
 // 3️⃣ 更新看診資訊
@@ -27,7 +27,7 @@ router.patch("/:id", async (req, res) => {
   const { id } = req.params;
   const updates = { ...req.body, updated_at: new Date() };
 
-  const { data, error } = await supabase.from(table).update(updates).eq("O_UserID", id).select();
+  const { data, error } = await supabase.from(table).update(updates).eq("elder_user_id", id).select();
 
   if (error) return res.status(500).json({ error: error.message });
   res.json(data[0]);
@@ -36,10 +36,10 @@ router.patch("/:id", async (req, res) => {
 // 4️⃣ 刪除看診資訊
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const { error } = await supabase.from(table).delete().eq("O_UserID", id);
+  const { error } = await supabase.from(table).delete().eq("elder_user_id", id);
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json({ message: `已刪除 O_UserID=${id} 的看診資訊` });
+  res.json({ message: `已刪除 elder_user_id=${id} 的看診資訊` });
   //isOK
 });
 

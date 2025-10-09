@@ -14,14 +14,14 @@ router.get("/", async (req, res) => {
 });
 
 
-// ✅ 取得單筆預約（根據 GUID）
+// ✅ 取得單筆預約（根據 uuid）
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
 
   const { data, error } = await supabase
     .from("預約志工")
     .select("*")
-    .eq("GUID", id)
+    .eq("uuid", id)
     .single();
 
   if (error) return res.status(404).json({ error: "找不到該預約" });
@@ -34,18 +34,18 @@ router.get("/by-volunteer/:v_user_id", async (req, res) => {
 
   const { data, error } = await supabase
     .from("預約志工")
-    .select("O_Name") // 只取 O_Name 欄位
-    .eq("V_UserID", v_user_id)
+    .select("elder_name") // 只取 elder_user_id 欄位
+    .eq("volunteer_user_id", v_user_id)
 
   if (error || !data) {
     return res.status(404).json({ error: "找不到該志工的長者姓名" });
   }
 
   // 去除重複長者名稱
-  const uniqueNames = [...new Set(data.map(d => d.O_Name))];
+  const uniqueNames = [...new Set(data.map(d => d.elder_name))];
 
   res.json({
-    O_Name: uniqueNames ,
+    elder_name: uniqueNames ,
   });
 });
 
@@ -64,7 +64,7 @@ router.post("/", async (req, res) => {
 });
 
 
-// ✅ 更新預約（根據 GUID）
+// ✅ 更新預約（根據 uuid）
 router.patch("/:id", async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
@@ -72,7 +72,7 @@ router.patch("/:id", async (req, res) => {
   const { data, error } = await supabase
     .from("預約志工")
     .update({ ...updates, updated_at: new Date() })
-    .eq("GUID", id)
+    .eq("uuid", id)
     .select()
     .single();
 
@@ -81,14 +81,14 @@ router.patch("/:id", async (req, res) => {
 });
 
 
-// ✅ 刪除預約（根據 GUID）
+// ✅ 刪除預約（根據 uuid）
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
 
   const { error } = await supabase
     .from("預約志工")
     .delete()
-    .eq("GUID", id);
+    .eq("uuid", id);
 
   if (error) return res.status(400).json({ error: error.message });
   res.json({ message: "預約已刪除" });

@@ -14,13 +14,13 @@ router.get('/', async (req, res) => {
   res.json(data);
 });
 
-// 依 V_UserID 取得單一志工資訊
+// 依 volunteer_user_id 取得單一志工資訊
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
     .from('志工資訊')
     .select('*')
-    .eq('V_UserID', id)
+    .eq('volunteer_user_id', id)
     .single();
 
   if (error) return res.status(404).json({ error: error.message });
@@ -47,7 +47,7 @@ router.patch('/:id', async (req, res) => {
   const { data, error } = await supabase
     .from('志工資訊')
     .update(updates)
-    .eq('V_UserID', id);
+    .eq('volunteer_user_id', id);
 
   if (error) return res.status(400).json({ error: error.message });
   res.json(data);
@@ -59,7 +59,7 @@ router.delete('/:id', async (req, res) => {
   const { data, error } = await supabase
     .from('志工資訊')
     .delete()
-    .eq('V_UserID', id);
+    .eq('volunteer_user_id', id);
 
   if (error) return res.status(400).json({ error: error.message });
   res.json({ message: '志工資訊已刪除', data });
