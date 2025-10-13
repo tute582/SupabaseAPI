@@ -15,13 +15,13 @@ router.get("/", async (req, res) => {
 });
 
 // ✅ 取得單一長者資訊（依 uuid）
-router.get("/:uuid", async (req, res) => {
-  const { uuid } = req.params;
+router.get("/:elder_user_id", async (req, res) => {
+  const { elder_user_id } = req.params;
 
   const { data, error } = await supabase
     .from("長者資訊")
     .select("*")
-    .eq("uuid", uuid)
+    .eq("elder_user_id", elder_user_id)
     .maybeSingle();
 
   if (error || !data) return res.status(404).json({ error: "找不到該長者資料" });
@@ -43,14 +43,14 @@ router.post("/", async (req, res) => {
 });
 
 // ✅ 更新長者資訊（依 uuid）
-router.patch("/:uuid", async (req, res) => {
-  const { uuid } = req.params;
+router.patch("/:elder_user_id", async (req, res) => {
+  const { elder_user_id } = req.params;
   const updates = req.body;
 
   const { data, error } = await supabase
     .from("長者資訊")
     .update({ ...updates, updated_at: new Date() })
-    .eq("uuid", uuid)
+    .eq("elder_user_id", elder_user_id)
     .select()
     .maybeSingle();
 
@@ -59,13 +59,13 @@ router.patch("/:uuid", async (req, res) => {
 });
 
 // ✅ 刪除長者資訊（依 uuid）
-router.delete("/:uuid", async (req, res) => {
-  const { uuid } = req.params;
+router.delete("/:elder_user_id", async (req, res) => {
+  const { elder_user_id } = req.params;
 
   const { error } = await supabase
     .from("長者資訊")
     .delete()
-    .eq("uuid", uuid);
+    .eq("elder_user_id", elder_user_id);
 
   if (error) return res.status(400).json({ error: error.message });
   res.json({ message: "長者資料已刪除" });
