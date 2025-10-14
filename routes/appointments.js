@@ -75,7 +75,26 @@ router.get("/volunteer/:volunteer_user_id", async (req, res) => {
   }
 });
 
-// 5. 取得志工的某位長者單筆預約資料（根據 volunteer_user_id/elder_user_id、event_id）
+// 5. 取得志工的某位長者所有預約資料（根據 volunteer_user_id/elder_user_id）
+router.get("/volunteer/:volunteer_user_id/:elder_user_id", async (req, res) => {
+  try{
+    const { volunteer_user_id,elder_user_id} = req.params;
+
+    const { data, error } = await supabase
+      .from(table)
+      .select("*")
+      .eq("volunteer_user_id",volunteer_user_id)
+      .eq("elder_user_id", elder_user_id)
+  
+    if (error) return res.status(404).json({ success: false, message: error.message });
+    res.json({ success: true, data });
+  }
+  catch{
+    res.status(500).json({ success: false, message: "伺服器錯誤" });
+  }
+});
+
+// 6. 取得志工的某位長者單筆預約資料（根據 volunteer_user_id/elder_user_id、event_id）
 router.get("/volunteer/:volunteer_user_id/:elder_user_id/:event_id", async (req, res) => {
   try{
     const { volunteer_user_id,elder_user_id ,event_id} = req.params;
@@ -95,7 +114,7 @@ router.get("/volunteer/:volunteer_user_id/:elder_user_id/:event_id", async (req,
   }
 });
 
-// 6. 取得志工對應的長者姓名（根據 volunteer_user_id)
+// 7. 取得志工對應的長者姓名（根據 volunteer_user_id)
 router.get("/by-volunteer/:volunteer_user_id", async (req, res) => {
   try{
     const { volunteer_user_id } = req.params;
@@ -122,7 +141,7 @@ router.get("/by-volunteer/:volunteer_user_id", async (req, res) => {
   }
 });
 
-// 7. 建立新預約
+// 8. 建立新預約
 router.post("/", async (req, res) => {
   try{
     const newAppointment = req.body;
@@ -141,7 +160,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// 8. 更新預約
+// 9. 更新預約
 router.patch("/elder/:elder_user_id/:event_id", async (req, res) => {
   try{
     const { elder_user_id,event_id } = req.params;
@@ -164,7 +183,7 @@ router.patch("/elder/:elder_user_id/:event_id", async (req, res) => {
 });
 
 
-// 9. 刪除預約
+// 10. 刪除預約
 router.delete("/elder/:elder_user_id/:event_id", async (req, res) => {
   try{
     const { elder_user_id,event_id } = req.params;
