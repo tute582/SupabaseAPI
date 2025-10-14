@@ -1,4 +1,4 @@
-// 檔案位置：/api/check-reminders.js
+// 檔案位置：/routes/check-reminders.js
 
 export default async function handler(req, res) {
     try {
