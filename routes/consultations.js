@@ -14,32 +14,36 @@ router.get("/", async (req, res) => {
     if (error)
       return res.status(500).json({ success: false, message: error.message });
 
-    return res.json({ success: true, data });
+    res.json({ success: true, data });
   }
   catch{
-    return res.status(500).json({ success: false, message: "伺服器錯誤" });
+    res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
 
 // 2. 取得一位長者的所有看診資訊 (依elder_user_id)
 router.get("/:elder_user_id", async (req, res) => {
-  const { elder_user_id } = req.params;
+  try{
+    const { elder_user_id } = req.params;
 
-  const { data, error } = await supabase
-    .from(table)
-    .select("*")
-    .eq("elder_user_id", elder_user_id)
-    .order("visit_time", { ascending: false });
-
-  if (error)
-    return res.status(500).json({ success: false, message: error.message });
-
-  if (!data || data.length === 0)
-    return res
-      .status(404)
-      .json({ success: false, message: "找不到該長者的看診資料" });
-
-  res.json({ success: true, data });
+    const { data, error } = await supabase
+      .from(table)
+      .select("*")
+      .eq("elder_user_id", elder_user_id)
+      .order("visit_time", { ascending: false });
+  
+    if (error)
+      return res.status(500).json({ success: false, message: error.message });
+  
+    if (!data || data.length === 0)
+      return res.status(404).json({ success: false, message: "找不到該長者的看診資料" });
+  
+    res.json({ success: true, data });
+  }
+  catch{
+    res.status(500).json({ success: false, message: "伺服器錯誤" });
+  }
+  
 });
 
 // 3. 取得一位長者的一筆看診資訊（依 elder_user_id,event_id）
@@ -58,9 +62,7 @@ router.get("/:elder_user_id/:event_id", async (req, res) => {
       return res.status(500).json({ success: false, message: error.message });
   
     if (!data)
-      return res
-        .status(404)
-        .json({ success: false, message: "找不到該看診事件資料" });
+      return res.status(404).json({ success: false, message: "找不到該看診事件資料" });
   
     res.json({ success: true, data });
   }
@@ -112,11 +114,10 @@ router.post("/", async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: `已新增 ${newConsultation.elder_name || newConsultation.elder_user_id} 的 ${newEventId}`,
       data,
     });
-  } catch (err) {
-    console.error("❌ Unexpected Error:", err);
+  } 
+  catch {
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });
@@ -139,7 +140,7 @@ router.patch("/:elder_user_id/:event_id", async (req, res) => {
     res.json({
       success: true,
       message: `已成功更新看診資訊`,
-      data: data[0],
+      data: data,
     });
   }
   catch{
