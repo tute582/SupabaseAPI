@@ -18,7 +18,7 @@ router.get("/:id", async (req, res) => {
     if (volunteerError) throw volunteerError;
 
     if (volunteer) {
-      return res.json({ role: "志工", data: volunteer });
+      return res.json({ success: true , role: "志工", data: volunteer });
     }
 
     // 2️⃣ 若不是志工，查長者資訊
@@ -31,14 +31,13 @@ router.get("/:id", async (req, res) => {
     if (elderError) throw elderError;
 
     if (elder) {
-      return res.json({ role: "長者", data: elder });
+      return res.json({ success: true , role: "長者", data: elder });
     }
 
     // 3️⃣ 若兩個資料表都沒找到
-    return res.json({ role: false });
+    return res.json({ success: false });
   } catch (error) {
-    console.error("❌ 錯誤：", error.message);
-    res.status(500).json({ error: "伺服器錯誤，請稍後再試。" });
+    res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
 
