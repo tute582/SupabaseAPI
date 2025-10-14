@@ -1,13 +1,13 @@
 import express from "express";
 import supabase from "../supabaseClient.js";
-
 const router = express.Router();
+const table = "長者資訊";
 
 // 1. 取得所有長者資訊
 router.get("/", async (req, res) => {
   try{
     const { data, error } = await supabase
-      .from("長者資訊")
+      .from(table)
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -25,7 +25,7 @@ router.get("/:elder_user_id", async (req, res) => {
     const { elder_user_id } = req.params;
 
     const { data, error } = await supabase
-      .from("長者資訊")
+      .from(table)
       .select("*")
       .eq("elder_user_id", elder_user_id)
       .maybeSingle();
@@ -44,7 +44,7 @@ router.post("/", async (req, res) => {
     const newElder = req.body;
 
     const { data, error } = await supabase
-      .from("長者資訊")
+      .from(table)
       .insert([newElder])
       .select()
       .maybeSingle();
@@ -64,7 +64,7 @@ router.patch("/:elder_user_id", async (req, res) => {
     const updates = req.body;
   
     const { data, error } = await supabase
-      .from("長者資訊")
+      .from(table)
       .update({ ...updates, updated_at: new Date() })
       .eq("elder_user_id", elder_user_id)
       .select()
@@ -84,7 +84,7 @@ router.delete("/:elder_user_id", async (req, res) => {
     const { elder_user_id } = req.params;
 
     const { error } = await supabase
-      .from("長者資訊")
+      .from(table)
       .delete()
       .eq("elder_user_id", elder_user_id);
   

@@ -1,12 +1,13 @@
 import express from "express";
 import supabase from '../supabaseClient.js';
 const router = express.Router();
+const table = "志工資訊";
 
 // 1. 取得全部志工資訊
 router.get('/', async (req, res) => {
   try{
     const { data, error } = await supabase
-      .from('志工資訊')
+      .from(table)
       .select('*');
 
     if (error) return res.status(500).json({ success: false, message: error.message });
@@ -22,7 +23,7 @@ router.get('/:volunteer_user_id', async (req, res) => {
   try{
     const { volunteer_user_id } = req.params;
     const { data, error } = await supabase
-      .from('志工資訊')
+      .from(table)
       .select('*')
       .eq('volunteer_user_id', volunteer_user_id)
       .single();
@@ -40,7 +41,7 @@ router.post('/', async (req, res) => {
   try{
     const newVolunteer = req.body;
     const { data, error } = await supabase
-      .from('志工資訊')
+      .from(table)
       .insert([newVolunteer]);
   
     if (error) return res.status(500).json({ success: false, message: error.message });
@@ -59,7 +60,7 @@ router.patch('/:volunteer_user_id', async (req, res) => {
     updates.updated_at = new Date(); // 更新時間
   
     const { data, error } = await supabase
-      .from('志工資訊')
+      .from(table)
       .update(updates)
       .eq('volunteer_user_id', volunteer_user_id);
   
@@ -76,7 +77,7 @@ router.delete('/:volunteer_user_id', async (req, res) => {
   try{
     const { volunteer_user_id } = req.params;
     const { data, error } = await supabase
-      .from('志工資訊')
+      .from(table)
       .delete()
       .eq('volunteer_user_id', volunteer_user_id);
   
