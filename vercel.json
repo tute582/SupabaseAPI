@@ -2,7 +2,7 @@
     "cron": {
       "jobs": [
         {
-          "path": "/api/check-reminders",
+          "path": "/check-reminders",
           "schedule": "*/1 * * * *"
         }
       ]

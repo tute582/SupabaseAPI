@@ -7,6 +7,7 @@ import identifyRouter from "./routes/identify.js";
 import appointmentsRouter from "./routes/appointments.js";
 import eldersRouter from "./routes/elders.js";
 import schedulesRouter from "./routes/schedules.js";
+import checkRemindersRouter from "./routes/check-reminders.js";
 
 const app = express();
 app.use(cors());                // ✅ 允許跨域請求
@@ -24,6 +25,8 @@ app.use("/identify", identifyRouter);
 app.use("/schedules", schedulesRouter);
 // 掛載「志工資訊」路由
 app.use("/volunteers", volunteersRouter);
+// 新增的自動提醒 API
+app.use("/check-reminders", checkRemindersRouter);
 
 app.listen(3001, () => {
   console.log("Server running at http://localhost:3001");
