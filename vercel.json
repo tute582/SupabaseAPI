@@ -1,0 +1,11 @@
+{
+    "cron": {
+      "jobs": [
+        {
+          "path": "/routes/check-reminders",
+          "schedule": "*/1 * * * *"
+        }
+      ]
+    }
+  }
+  
