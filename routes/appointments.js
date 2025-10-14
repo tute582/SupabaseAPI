@@ -29,7 +29,6 @@ router.get("/elder/:elder_user_id", async (req, res) => {
       .from(table)
       .select("*")
       .eq("elder_user_id", elder_user_id)
-      .single();
   
     if (error) return res.status(404).json({ success: false, message: error.message });
     res.json({ success: true, data });
@@ -49,7 +48,6 @@ router.get("/elder/:elder_user_id/:event_id", async (req, res) => {
       .select("*")
       .eq("elder_user_id", elder_user_id)
       .eq("event_id",event_id)
-      .single();
   
     if (error) return res.status(404).json({ success: false, message: error.message });
     res.json({ success: true, data });
@@ -68,7 +66,6 @@ router.get("/volunteer/:volunteer_user_id", async (req, res) => {
       .from(table)
       .select("*")
       .eq("volunteer_user_id", volunteer_user_id)
-      .single();
   
     if (error) return res.status(404).json({ success: false, message: error.message });
     res.json({ success: true, data });
@@ -89,7 +86,6 @@ router.get("/volunteer/:volunteer_user_id/:elder_user_id/:event_id", async (req,
       .eq("volunteer_user_id",volunteer_user_id)
       .eq("elder_user_id", elder_user_id)
       .eq("event_id",event_id)
-      .single();
   
     if (error) return res.status(404).json({ success: false, message: error.message });
     res.json({ success: true, data });
