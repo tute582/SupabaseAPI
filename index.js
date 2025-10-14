@@ -6,6 +6,7 @@ import consultationsRouter from "./routes/consultations.js";
 import identifyRouter from "./routes/identify.js";
 import appointmentsRouter from "./routes/appointments.js";
 import eldersRouter from "./routes/elders.js";
+import schedulesRouter from "./routes/schedules.js";
 
 const app = express();
 app.use(cors());                // ✅ 允許跨域請求
@@ -19,6 +20,8 @@ app.use("/consultations", consultationsRouter);
 app.use("/elders", eldersRouter);
 // 掛載「身分辨別」路由
 app.use("/identify", identifyRouter);
+// 掛載「行事曆」路由
+app.use("/schedules", schedulesRouter);
 // 掛載「志工資訊」路由
 app.use("/volunteers", volunteersRouter);
 

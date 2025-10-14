@@ -78,47 +78,47 @@ router.post("/", async (req, res) => {
     const newConsultation = req.body;
 
     if (!newConsultation.elder_user_id) {
-      return res.status(400).json({ error: "缺少長者ID" });
+        return res.status(400).json({ success: false, message: "缺少長者ID" });
     }
 
     // 查詢該長者最後一筆
     const { data: lastRecord, error: fetchError } = await supabase
-      .from("看診資訊")
-      .select("event_id")
-      .eq("elder_user_id", newConsultation.elder_user_id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+        .from(table)
+        .select("event_id")
+        .eq("elder_user_id", newConsultation.elder_user_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
     if (fetchError) {
-      return res.status(500).json({ error: "查詢失敗" });
+        return res.status(500).json({ success: false, message: "查詢失敗" });
     }
 
     // 自動產生新的 event_id
     let newEventId = "Event1";
     if (lastRecord?.event_id) {
-      const lastNum = parseInt(lastRecord.event_id.replace("Event", ""), 10);
-      newEventId = `Event${lastNum + 1}`;
+        const lastNum = parseInt(lastRecord.event_id.replace("Event", ""), 10);
+        newEventId = `Event${lastNum + 1}`;
     }
 
     // 新增資料（直接使用 req.body）
     const { data, error: insertError } = await supabase
-      .from("看診資訊")
-      .insert([{ ...newConsultation, event_id: newEventId }]) // 🔹 用展開運算子加上 event_id
-      .select()
-      .maybeSingle();
+        .from(table)
+        .insert([{ ...newConsultation, event_id: newEventId }]) // 🔹 用展開運算子加上 event_id
+        .select()
+        .maybeSingle();
 
     if (insertError) {
-      return res.status(500).json({ error: "新增資料時發生錯誤" });
+        return res.status(500).json({ success: false, message: "新增資料時發生錯誤" });
     }
 
     res.status(201).json({
-      success: true,
-      data,
+        success: true,
+        data,
     });
   } 
   catch {
-    res.status(500).json({ error: "伺服器錯誤" });
+  res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
 
