@@ -1,9 +1,0 @@
-{
-    "crons":  [
-        {
-          "path": "/check-reminders",
-          "schedule": "*/1 * * * *"
-        }
-      ]
-    
-  }
