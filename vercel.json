@@ -1,0 +1,10 @@
+{
+  "$schema": "https://supabase-api-six.vercel.app/vercel.json",
+    "crons":  [
+        {
+          "path": "/check-reminders",
+          "schedule": "*/1 * * * *"
+        }
+      ]
+    
+  }
