@@ -63,7 +63,11 @@ router.get("/elder/:elder_user_id/:event_id", async (req, res) => {
 router.post("/", async (req, res) => {
     try {
         const newConsultation = req.body;
+        //預設是否提醒 為"False"
         newConsultation.is_reminded = "false"
+        //存取建立行程時間
+        const formattedTime = new Date().toLocaleString("zh-TW", { hour12: false }).replace(/\//g, "-");
+
         if (!newConsultation.elder_user_id) {
             return res.status(400).json({ success: false, message: "缺少長者ID" });
         }
@@ -91,7 +95,7 @@ router.post("/", async (req, res) => {
         // 新增資料（直接使用 req.body）
         const { data, error: insertError } = await supabase
             .from(table)
-            .insert([{ ...newConsultation, event_id: newEventId }]) // 🔹 用展開運算子加上 event_id
+            .insert([{ ...newConsultation, event_id: newEventId,created_at: formattedTime }]) // 🔹 用展開運算子加上 event_id
             .select()
             .maybeSingle();
 
