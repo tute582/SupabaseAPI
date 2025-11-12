@@ -63,7 +63,7 @@ router.get("/elder/:elder_user_id/:event_id", async (req, res) => {
 router.post("/", async (req, res) => {
     try {
         const newConsultation = req.body;
-        newConsultation.is_reminded = "true"
+        newConsultation.is_reminded = "false"
         if (!newConsultation.elder_user_id) {
             return res.status(400).json({ success: false, message: "缺少長者ID" });
         }
