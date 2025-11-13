@@ -66,7 +66,13 @@ router.post("/", async (req, res) => {
         //預設是否提醒 為"False"
         newConsultation.is_reminded = "false"
         //存取建立行程時間
-        newConsultation.created_at = new Date().toLocaleString("zh-TW", { hour12: false }).replace(/\//g, "-");
+        const now = new Date();
+        const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+        newConsultation.created_at = taiwanTime
+          .toISOString()
+          .replace("T", " ")
+          .substring(0, 19)
+          .replace(/-/g, "-");
         
         if (!newConsultation.elder_user_id) {
             return res.status(400).json({ success: false, message: "缺少長者ID" });
