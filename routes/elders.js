@@ -42,10 +42,16 @@ router.get("/:elder_user_id", async (req, res) => {
 router.post("/", async (req, res) => {
   try{
     const newElder = req.body;
+    const now = new Date();
+    const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    newElder.created_at = taiwanTime
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19)+ "+08"
 
     const { data, error } = await supabase
       .from(table)
-      .insert([newElder])
+      .insert([{ ...newElder, updated_at: null }])
       .select()
       .maybeSingle();
   

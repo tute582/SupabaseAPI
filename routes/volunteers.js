@@ -40,9 +40,16 @@ router.get('/:volunteer_user_id', async (req, res) => {
 router.post('/', async (req, res) => {
   try{
     const newVolunteer = req.body;
+    const now = new Date();
+    const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    newVolunteer.created_at = taiwanTime
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19)+ "+08"
+    
     const { data, error } = await supabase
       .from(table)
-      .insert([newVolunteer]);
+      .insert([{ ...newVolunteer, updated_at: null }])
   
     if (error) return res.status(500).json({ success: false, message: error.message });
     res.status(201).json({ success: true, data });

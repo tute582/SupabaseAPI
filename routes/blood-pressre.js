@@ -63,7 +63,7 @@ router.get("/:elder_user_id/:event_id", async (req, res) => {
 router.post("/", async (req, res) => {
     try {
         const newConsultation = req.body;
-        //存取建立行程時間
+        //存取建立血壓時間
         const now = new Date();
         const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
         newConsultation.created_at = taiwanTime
