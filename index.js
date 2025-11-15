@@ -9,6 +9,7 @@ import eldersRouter from "./routes/elders.js";
 import schedulesRouter from "./routes/schedules.js";
 import checkRemindersRouter from "./routes/check-reminders.js";
 import bloodPressreRouter from "./routes/blood-pressre.js";
+import getAdviceRouter from "./routes/getAdvice.js";
 
 const app = express();
 app.use(cors());                // ✅ 允許跨域請求
@@ -30,6 +31,8 @@ app.use("/bloodPressre", bloodPressreRouter);
 app.use("/volunteers", volunteersRouter);
 // 新增的自動提醒 API
 app.use("/check-reminders", checkRemindersRouter);
+// 取得AI血壓紀錄建議
+app.use("/getAdvice", getAdviceRouter);
 
 app.listen(3001, () => {
   console.log("Server running at http://localhost:3001");
