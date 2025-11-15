@@ -1,9 +1,27 @@
 import express from "express";
 import supabase from '../supabaseClient.js';
 import dotenv from 'dotenv';
+import axios from "axios";
+
 dotenv.config();
 const router = express.Router();
 const table = "血壓紀錄";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+// Helper：呼叫 Gemini AI
+async function generateAdvice(prompt) {
+  try {
+    const response = await axios.post(
+      "https://api.gemini.ai/v1/generate",
+      { prompt, max_output_tokens: 100 },
+      { headers: { Authorization: `Bearer ${GEMINI_API_KEY}` } }
+    );
+    return response.data.output_text || "AI 無法提供建議";
+  } catch (err) {
+    console.error("Gemini API error:", err.response?.data || err.message);
+    return "AI 回覆失敗";
+  }
+}
 
 router.post("/", async (req, res) => {
   try {
@@ -30,14 +48,15 @@ router.post("/", async (req, res) => {
       return res.json({ success: true, data: [], message: "近 7 天無血壓紀錄" });
     }
 
-    // 2️⃣ 組成 AI prompt（可以一次生成整體分析，也可以逐筆生成）
+    // 2️⃣ 組成 AI prompt
     let summaryText = `使用者: ${data[0].elder_name}\n近7天血壓紀錄:\n`;
     data.forEach((record, idx) => {
       summaryText += `${idx + 1}. 收縮壓: ${record.systolic}, 舒張壓: ${record.diastolic}, 測量時間: ${record.recorded_time}\n`;
     });
     summaryText += "請提供一段50字左右的健康建議與分析。";
 
-    const advice = response.output_text || "AI 無法提供建議";
+    // 3️⃣ 呼叫 Gemini API
+    const advice = await generateAdvice(summaryText);
 
     // 4️⃣ 回傳資料
     res.json({
