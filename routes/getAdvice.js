@@ -7,40 +7,26 @@ dotenv.config();
 const router = express.Router();
 const table = "血壓紀錄";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-console.log("GEMINI_API_KEY:", GEMINI_API_KEY);
 
 // Helper: 呼叫 Gemini HTTP API
 async function getGeminiResponse(prompt) {
   try {
-    const payload = {
-      contents: [
-        { parts: [{ text: prompt }] }
-      ]
-    };
-
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`;
+
+    const payload = {
+      // Gemini API 的格式
+      contents: [{ parts: [{ text: prompt }] }]
+    };
 
     const response = await axios.post(url, payload, {
       headers: { "Content-Type": "application/json" }
     });
 
-    const reply =
-      response.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "AI 無法提供建議";
-
-    return { success: true, text: reply };
-
+    const reply = response.data?.candidates?.[0]?.content?.[0]?.text;
+    return reply || "AI 無法提供建議";
   } catch (err) {
-    const errorMessage = err.response?.data || err.message;
-
-    console.error("Gemini API error:", errorMessage);
-
-    return {
-      success: false,
-      text: "AI 回覆失敗",
-      error: errorMessage,
-      usedApiKey: GEMINI_API_KEY   // ⭐ 回傳實際使用的 API KEY（只用於本地測試）
-    };
+    console.error("Gemini API error:", err.response?.data || err.message);
+    return "AI 回覆失敗";
   }
 }
 
@@ -77,19 +63,17 @@ router.post("/", async (req, res) => {
     });
 
     // 呼叫 Gemini HTTP API
-    const adviceResult = await getGeminiResponse(summaryText);
+    const advice = await getGeminiResponse(summaryText);
 
     res.json({
       success: true,
       data,
-      advice: adviceResult.text,
-      errorDetail: adviceResult.error || null,
-      usedApiKey: adviceResult.usedApiKey || null
+      advice
     });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "伺服器錯誤", errorDetail: err.message });
+    res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
 
