@@ -14,14 +14,16 @@ async function getGeminiResponse(prompt) {
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`;
 
     const payload = {
-      // Gemini API 的格式
-      contents: [{ parts: [{ text: prompt }] }]
+      prompt: { text: prompt },
+      temperature: 0.7,
+      max_output_tokens: 100
     };
 
     const response = await axios.post(url, payload, {
       headers: { "Content-Type": "application/json" }
     });
 
+    // Gemini 會回傳 choices 陣列
     const reply = response.data?.candidates?.[0]?.content?.[0]?.text;
     return reply || "AI 無法提供建議";
   } catch (err) {
