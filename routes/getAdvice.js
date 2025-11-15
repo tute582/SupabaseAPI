@@ -7,7 +7,7 @@ dotenv.config();
 const router = express.Router();
 const table = "血壓紀錄";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
+console.log(process.env.GEMINI_API_KEY)
 // Helper: 呼叫 Gemini HTTP API
 async function getGeminiResponse(prompt) {
   try {
