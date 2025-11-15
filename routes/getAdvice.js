@@ -11,19 +11,21 @@ console.log(process.env.GEMINI_API_KEY)
 // Helper: 呼叫 Gemini HTTP API
 async function getGeminiResponse(prompt) {
   try {
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`;
-
     const payload = {
       prompt: { text: prompt },
       temperature: 0.7,
       max_output_tokens: 100
     };
 
-    const response = await axios.post(url, payload, {
-      headers: { "Content-Type": "application/json" }
-    });
+    const response = await axios.post(
+      'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent',
+      payload,
+      { headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GEMINI_API_KEY}`
+      } }
+    );
 
-    // Gemini 會回傳 choices 陣列
     const reply = response.data?.candidates?.[0]?.content?.[0]?.text;
     return reply || "AI 無法提供建議";
   } catch (err) {
