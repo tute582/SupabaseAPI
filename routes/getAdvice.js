@@ -32,8 +32,15 @@ async function getGeminiResponse(prompt) {
 
   } catch (err) {
     const errorMessage = err.response?.data || err.message;
+
     console.error("Gemini API error:", errorMessage);
-    return { success: false, text: "AI 回覆失敗", error: errorMessage };
+
+    return {
+      success: false,
+      text: "AI 回覆失敗",
+      error: errorMessage,
+      usedApiKey: GEMINI_API_KEY   // ⭐ 回傳實際使用的 API KEY（只用於本地測試）
+    };
   }
 }
 
@@ -76,8 +83,8 @@ router.post("/", async (req, res) => {
       success: true,
       data,
       advice: adviceResult.text,
-      // 測試用，若出錯會回傳 API 原始錯誤訊息
-      errorDetail: adviceResult.success ? null : adviceResult.error
+      errorDetail: adviceResult.error || null,
+      usedApiKey: adviceResult.usedApiKey || null
     });
 
   } catch (err) {
