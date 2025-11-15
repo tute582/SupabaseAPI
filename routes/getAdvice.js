@@ -13,24 +13,24 @@ console.log("GEMINI_API_KEY:", GEMINI_API_KEY);
 async function getGeminiResponse(prompt) {
   try {
     const payload = {
-      prompt: { text: prompt },
-      temperature: 0.7,
-      max_output_tokens: 100
+      contents: [
+        { parts: [{ text: prompt }] }
+      ]
     };
 
-    const response = await axios.post(
-      'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent',
-      payload,
-      { headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${GEMINI_API_KEY}`
-      } }
-    );
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`;
 
-    const reply = response.data?.candidates?.[0]?.content?.[0]?.text;
-    return { success: true, text: reply || "AI 無法提供建議" };
+    const response = await axios.post(url, payload, {
+      headers: { "Content-Type": "application/json" }
+    });
+
+    const reply =
+      response.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "AI 無法提供建議";
+
+    return { success: true, text: reply };
+
   } catch (err) {
-    // 這裡直接回傳錯誤訊息，方便測試
     const errorMessage = err.response?.data || err.message;
     console.error("Gemini API error:", errorMessage);
     return { success: false, text: "AI 回覆失敗", error: errorMessage };
