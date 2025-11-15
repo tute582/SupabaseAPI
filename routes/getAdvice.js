@@ -7,7 +7,8 @@ dotenv.config();
 const router = express.Router();
 const table = "血壓紀錄";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-console.log(process.env.GEMINI_API_KEY)
+console.log("GEMINI_API_KEY:", GEMINI_API_KEY);
+
 // Helper: 呼叫 Gemini HTTP API
 async function getGeminiResponse(prompt) {
   try {
@@ -27,10 +28,12 @@ async function getGeminiResponse(prompt) {
     );
 
     const reply = response.data?.candidates?.[0]?.content?.[0]?.text;
-    return reply || "AI 無法提供建議";
+    return { success: true, text: reply || "AI 無法提供建議" };
   } catch (err) {
-    console.error("Gemini API error:", err.response?.data || err.message);
-    return "AI 回覆失敗";
+    // 這裡直接回傳錯誤訊息，方便測試
+    const errorMessage = err.response?.data || err.message;
+    console.error("Gemini API error:", errorMessage);
+    return { success: false, text: "AI 回覆失敗", error: errorMessage };
   }
 }
 
@@ -67,17 +70,19 @@ router.post("/", async (req, res) => {
     });
 
     // 呼叫 Gemini HTTP API
-    const advice = await getGeminiResponse(summaryText);
+    const adviceResult = await getGeminiResponse(summaryText);
 
     res.json({
       success: true,
       data,
-      advice
+      advice: adviceResult.text,
+      // 測試用，若出錯會回傳 API 原始錯誤訊息
+      errorDetail: adviceResult.success ? null : adviceResult.error
     });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "伺服器錯誤" });
+    res.status(500).json({ success: false, message: "伺服器錯誤", errorDetail: err.message });
   }
 });
 
