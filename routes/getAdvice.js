@@ -1,34 +1,14 @@
 import express from "express";
 import supabase from '../supabaseClient.js';
 import dotenv from 'dotenv';
-import axios from "axios";
+import Gemini from '@gemini-ai/sdk';
 
 dotenv.config();
 const router = express.Router();
 const table = "血壓紀錄";
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-console.log(process.env.GEMINI_API_KEY)
-// Helper: 呼叫 Gemini HTTP API
-async function getGeminiResponse(prompt) {
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`;
 
-    const payload = {
-      // Gemini API 的格式
-      contents: [{ parts: [{ text: prompt }] }]
-    };
-
-    const response = await axios.post(url, payload, {
-      headers: { "Content-Type": "application/json" }
-    });
-
-    const reply = response.data?.candidates?.[0]?.content?.[0]?.text;
-    return reply || "AI 無法提供建議";
-  } catch (err) {
-    console.error("Gemini API error:", err.response?.data || err.message);
-    return "AI 回覆失敗";
-  }
-}
+// 初始化 Gemini 客戶端
+const gemini = new Gemini({ apiKey: process.env.GEMINI_API_KEY });
 
 router.post("/", async (req, res) => {
   try {
@@ -42,7 +22,7 @@ router.post("/", async (req, res) => {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const sevenDaysAgoISO = sevenDaysAgo.toISOString();
 
-    // 取得 Supabase 血壓資料
+    // 1️⃣ 取得 Supabase 血壓資料（近 7 天）
     const { data, error } = await supabase
       .from(table)
       .select("elder_user_id, elder_name, systolic, diastolic, recorded_time")
@@ -55,16 +35,26 @@ router.post("/", async (req, res) => {
       return res.json({ success: true, data: [], message: "近 7 天無血壓紀錄" });
     }
 
-    // 組成 prompt
-    let summaryText = `你是一位親切的健康輔助 AI，請針對以下使用者的血壓紀錄提供 50 字左右的健康建議：\n`;
-    summaryText += `使用者: ${data[0].elder_name}\n`;
+    // 2️⃣ 組成 AI prompt（可以一次生成整體分析，也可以逐筆生成）
+    let summaryText = `使用者: ${data[0].elder_name}\n近7天血壓紀錄:\n`;
     data.forEach((record, idx) => {
       summaryText += `${idx + 1}. 收縮壓: ${record.systolic}, 舒張壓: ${record.diastolic}, 測量時間: ${record.recorded_time}\n`;
     });
+    summaryText += "請提供一段50字左右的健康建議與分析。";
 
-    // 呼叫 Gemini HTTP API
-    const advice = await getGeminiResponse(summaryText);
+    // 3️⃣ 呼叫 Gemini AI
+    async function generateAdvice(prompt) {
+  const response = await axios.post(
+    "https://api.gemini.ai/v1/generate",
+    { prompt, max_output_tokens: 100 },
+    { headers: { Authorization: `Bearer ${apiKey}` } }
+  );
+  return response.data.output_text;
+}
 
+    const advice = response.output_text || "AI 無法提供建議";
+
+    // 4️⃣ 回傳資料
     res.json({
       success: true,
       data,
