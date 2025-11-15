@@ -1,14 +1,9 @@
 import express from "express";
 import supabase from '../supabaseClient.js';
 import dotenv from 'dotenv';
-import Gemini from '@gemini-ai/sdk';
-
 dotenv.config();
 const router = express.Router();
 const table = "血壓紀錄";
-
-// 初始化 Gemini 客戶端
-const gemini = new Gemini({ apiKey: process.env.GEMINI_API_KEY });
 
 router.post("/", async (req, res) => {
   try {
@@ -41,13 +36,6 @@ router.post("/", async (req, res) => {
       summaryText += `${idx + 1}. 收縮壓: ${record.systolic}, 舒張壓: ${record.diastolic}, 測量時間: ${record.recorded_time}\n`;
     });
     summaryText += "請提供一段50字左右的健康建議與分析。";
-
-    // 3️⃣ 呼叫 Gemini AI
-    const response = await gemini.generate({
-      model: "gemini-1.5",
-      prompt: summaryText,
-      max_output_tokens: 100
-    });
 
     const advice = response.output_text || "AI 無法提供建議";
 
