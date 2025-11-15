@@ -75,9 +75,7 @@ router.post("/", async (req, res) => {
     res.json({
       success: true,
       data,
-      advice: adviceResult.text,
-      // 測試用，若出錯會回傳 API 原始錯誤訊息
-      errorDetail: adviceResult.success ? null : adviceResult.error
+      advice: adviceResult.text
     });
 
   } catch (err) {
