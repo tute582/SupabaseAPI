@@ -43,14 +43,11 @@ router.post("/", async (req, res) => {
     summaryText += "請提供一段50字左右的健康建議與分析。";
 
     // 3️⃣ 呼叫 Gemini AI
-    async function generateAdvice(prompt) {
-  const response = await axios.post(
-    "https://api.gemini.ai/v1/generate",
-    { prompt, max_output_tokens: 100 },
-    { headers: { Authorization: `Bearer ${apiKey}` } }
-  );
-  return response.data.output_text;
-}
+    const response = await gemini.generate({
+      model: "gemini-1.5",
+      prompt: summaryText,
+      max_output_tokens: 100
+    });
 
     const advice = response.output_text || "AI 無法提供建議";
 
