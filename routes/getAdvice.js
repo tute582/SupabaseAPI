@@ -64,7 +64,6 @@ router.post("/", async (req, res) => {
 
     // 組成 prompt
     let summaryText = `你是一位親切的健康輔助 AI，請針對以下使用者的血壓紀錄提供 50 字左右的健康建議：\n`;
-    summaryText += `使用者: ${data[0].elder_name}\n`;
     data.forEach((record, idx) => {
       summaryText += `${idx + 1}. 收縮壓: ${record.systolic}, 舒張壓: ${record.diastolic}, 測量時間: ${record.recorded_time}\n`;
     });
