@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
  
          if (volunteerError) {
            console.error("志工資料查詢錯誤:", volunteerError);
-           return;
+           return res.status(500).json({ success: false, message: "志工資料查詢失敗" });
           }
 
 
