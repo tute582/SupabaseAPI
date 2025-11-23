@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/', async (req, res) => {
     try {
         // 1️⃣ 前端傳遞的資料
-        const { elder_user_id, date, time,  } = req.body; //department, city
+        const { elder_user_id, date, time } = req.body; //department, city
         const elderDateTime = new Date(`${date}T${time}:00`).getTime();// 組合成完整時間
 
         if (!elder_user_id) {
