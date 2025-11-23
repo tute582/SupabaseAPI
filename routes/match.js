@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
         // 2️⃣ 查詢長者資訊
         const { data: elder, error: elderError } = await supabase
         .from("長者資訊")
-        .select("gender")
+        .select("*")
         .eq("elder_user_id", elder_user_id)
         .maybeSingle();
 
