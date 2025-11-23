@@ -13,8 +13,6 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
         }
 
-        console.log("收到配對請求：", req.body);
-
         // 2️⃣ 查詢長者資訊
         const { data: elder, error: elderError } = await supabase
         .from("長者資訊")
@@ -28,7 +26,6 @@ router.post('/', async (req, res) => {
         }
 
         const elderGender = elder.gender;
-        console.log("長者性別：", elderGender);
 
         // 3️⃣ 查詢志工資料
         const { data: volunteers, error: volunteerError } = await supabase
@@ -47,11 +44,10 @@ router.post('/', async (req, res) => {
         // 5️⃣ 只取出 volunteer_user_id
         const volunteer_user_ids = matchedVolunteers.map(v => v.volunteer_user_id);
 
-        console.log("符合的志工 user_id：", volunteer_user_ids);
-
         // 6️⃣ 回傳結果
         return res.status(200).json({
         success: true,
+        elderGender:elderGender,
         volunteer_user_ids
         });
 
