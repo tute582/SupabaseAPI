@@ -7,7 +7,8 @@ const router = express.Router();
 router.post('/', async (req, res) => {
     try {
         // 1️⃣ 前端傳遞的資料
-        const { elder_user_id, date, time, department, city } = req.body;
+        const { elder_user_id, date, time,  } = req.body; //department, city
+        const elderDateTime = new Date(`${date}T${time}:00`).getTime();// 組合成完整時間
 
         if (!elder_user_id) {
         return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
@@ -48,20 +49,19 @@ router.post('/', async (req, res) => {
         //  return VStart <=ETime  && ETime <= VEnd; // 判斷兩個時間段是否有重疊
         // }
         // 時間重疊函式(長者單一時間，志工為多個時間-字串陣列)
-        function isTimeOverlap(volunteerTimes, elderTime) {
-          const ETime = new Date(elderTime).getTime();
+        function isTimeOverlap(volunteerTimes, elderDateTime) {
+            return volunteerTimes.some((timeRange) => {
+                // timeRange: "2025-11-14 08:00-12:00"
+                const [datePart, hoursPart] = timeRange.split(" "); // ["2025-11-14", "08:00-12:00"]
+                const [startHour, endHour] = hoursPart.split("-");  // ["08:00", "12:00"]
 
-          return volunteerTimes.some((timeRange) => {
-            // timeRange: "2025-11-14 08:00-12:00"
-            const [datePart, hoursPart] = timeRange.split(" "); // ["2025-11-14", "08:00-12:00"]
-            const [startHour, endHour] = hoursPart.split("-");  // ["08:00", "12:00"]
+                const start = new Date(`${datePart}T${startHour}:00`).getTime();
+                const end = new Date(`${datePart}T${endHour}:00`).getTime();
 
-            const start = new Date(`${datePart}T${startHour}:00`).getTime();
-            const end = new Date(`${datePart}T${endHour}:00`).getTime();
-
-            return start <= ETime && ETime <= end;
+                return start <= elderDateTime && elderDateTime <= end;
             });
         }
+
 
 
         // 4️⃣ AI配對 回傳符合資格的名單
@@ -69,7 +69,7 @@ router.post('/', async (req, res) => {
             return (
                 v.gender === elderGender    // ⭐ 重點：依長者性別比對
                 &&
-                 isTimeOverlap(v.available_times, time) // 任一時間段重疊即可     
+                isTimeOverlap(v.available_times, elderDateTime) // 任一時間段重疊即可     
             );
         });
 
