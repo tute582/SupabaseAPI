@@ -11,6 +11,7 @@ import checkRemindersRouter from "./routes/check-reminders.js";
 import bloodPressreRouter from "./routes/blood-pressre.js";
 import getAdviceRouter from "./routes/getAdvice.js";
 import matchRouter from "./routes/match.js";
+import testRouter from "./routes/test.js";
 
 const app = express();
 app.use(cors());                // ✅ 允許跨域請求
@@ -36,6 +37,8 @@ app.use("/check-reminders", checkRemindersRouter);
 app.use("/getAdvice", getAdviceRouter);
 // 掛載「AI配對」路由
 app.use("/match", matchRouter);
+// 掛載「AI配對test」路由
+app.use("/test", testRouter);
 
 app.listen(3001, () => {
   console.log("Server running at http://localhost:3001");
