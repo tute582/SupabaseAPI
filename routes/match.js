@@ -29,15 +29,32 @@ router.post('/', async (req, res) => {
 
         // 3️⃣ 查詢志工資料
         const { data: volunteers, error: volunteerError } = await supabase
-        .from("志工資訊")
-        .select("*");
+         .from("志工資訊")
+         .select("id, name, gender, available_times");
+ 
+         if (volunteerError) {
+           console.error("志工資料查詢錯誤:", volunteerError);
+           return;
+          }
 
-        if (volunteerError) throw volunteerError;
 
-        // 4️⃣ AI配對（目前先用性別作為唯一條件）
+
+        function isTimeOverlap(VTime, ETime) {
+         const VStart = new Date(VTime.start).getTime();
+         const VEnd = new Date(VTime.end).getTime();
+         const ETime = new Date(ETime).getTime();
+         
+
+         return VStart <=ETime  && ETime <= VEnd; // 判斷兩個時間段是否有重疊
+        }
+
+
+        // 4️⃣ AI配對 回傳符合資格的名單
         const matchedVolunteers = volunteers.filter(v => {
             return (
-                v.gender === elderGender   // ⭐ 重點：依長者性別比對
+                v.gender === elderGender    // ⭐ 重點：依長者性別比對
+                &&
+                v.availableTimes.some(VTime => isTimeOverlap(VTime, ETime))  // 任一時間段重疊即可     
             );
         });
 
@@ -60,3 +77,5 @@ router.post('/', async (req, res) => {
 });
 
 export default router;
+
+
