@@ -36,9 +36,9 @@ router.post('/', async (req, res) => {
 
         // 4️⃣ AI配對（目前先用性別作為唯一條件）
         const matchedVolunteers = volunteers.filter(v => {
-        return (
-            v.gender === elderGender   // ⭐ 重點：依長者性別比對
-        );
+            return (
+                v.gender === elderGender   // ⭐ 重點：依長者性別比對
+            );
         });
 
         // 5️⃣ 只取出 volunteer_user_id
@@ -46,11 +46,8 @@ router.post('/', async (req, res) => {
 
         // 6️⃣ 回傳結果
         return res.status(200).json({
-        success: true,
-        elderGender:elderGender,
-        volunteers,
-        matchedVolunteers,
-        volunteer_user_ids
+            success: true,
+            volunteer_user_ids
         });
 
     } catch (err) {
