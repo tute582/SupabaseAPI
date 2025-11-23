@@ -1,0 +1,67 @@
+import express from "express";
+import supabase from "../supabaseClient.js";
+
+const router = express.Router();
+
+// AI配對
+router.post('/', async (req, res) => {
+    try {
+        // 1️⃣ 前端傳遞的資料
+        const { elder_user_id, date, time, department, city } = req.body;
+
+        if (!elder_user_id) {
+        return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
+        }
+
+        console.log("收到配對請求：", req.body);
+
+        // 2️⃣ 查詢長者資訊
+        const { data: elder, error: elderError } = await supabase
+        .from("長者資訊")
+        .select("gender")
+        .eq("elder_user_id", elder_user_id)
+        .maybeSingle();
+
+        if (elderError) throw elderError;
+        if (!elder) {
+        return res.status(404).json({ success: false, message: "找不到該長者" });
+        }
+
+        const elderGender = elder.gender;
+        console.log("長者性別：", elderGender);
+
+        // 3️⃣ 查詢志工資料
+        const { data: volunteers, error: volunteerError } = await supabase
+        .from("志工資訊")
+        .select("*");
+
+        if (volunteerError) throw volunteerError;
+
+        // 4️⃣ AI配對（目前先用性別作為唯一條件）
+        const matchedVolunteers = volunteers.filter(v => {
+        return (
+            v.gender === elderGender   // ⭐ 重點：依長者性別比對
+        );
+        });
+
+        // 5️⃣ 只取出 volunteer_user_id
+        const volunteer_user_ids = matchedVolunteers.map(v => v.volunteer_user_id);
+
+        console.log("符合的志工 user_id：", volunteer_user_ids);
+
+        // 6️⃣ 回傳結果
+        return res.status(200).json({
+        success: true,
+        volunteer_user_ids
+        });
+
+    } catch (err) {
+        console.error("AI 配對錯誤：", err);
+        return res.status(500).json({
+        success: false,
+        message: "伺服器錯誤"
+        });
+    }
+});
+
+export default router;
