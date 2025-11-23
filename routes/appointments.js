@@ -179,15 +179,20 @@ router.post("/", async (req, res) => {
 
     // 新增資料（直接使用 req.body）
     const { data, error: insertError } = await supabase
-        .from(table)
-        .insert([{ ...newConsultation, event_id: newEventId, updated_at: null }]) // 🔹 用展開運算子加上 event_id
-        .select()
-        .maybeSingle();
+      .from(table)
+      .insert([{ ...newConsultation, event_id: newEventId, updated_at: null }]) // 🔹 用展開運算子加上 event_id
+      .select()
+      .maybeSingle();
 
     if (insertError) {
-        return res.status(500).json({ success: false, message: "新增資料時發生錯誤" });
+      console.error("Supabase Insert Error:", insertError);
+      return res.status(500).json({ 
+          success: false, 
+          message: "新增資料時發生錯誤", 
+          error: insertError 
+      });
     }
-
+      
     res.status(201).json({
         success: true,
         data,
