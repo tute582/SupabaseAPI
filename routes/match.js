@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
         // 3️⃣ 查詢志工資料
         const { data: volunteers, error: volunteerError } = await supabase
          .from("志工資訊")
-         .select("id, name, gender, available_times");
+         .select("volunteer_user_id, volunteer_name, gender, available_times");
  
          if (volunteerError) {
            console.error("志工資料查詢錯誤:", volunteerError);
@@ -39,13 +39,28 @@ router.post('/', async (req, res) => {
 
 
 
-        function isTimeOverlap(VTime, ETime) {
-         const VStart = new Date(VTime.start).getTime();
-         const VEnd = new Date(VTime.end).getTime();
-         const ETime = new Date(ETime).getTime();
+        // function isTimeOverlap(VTime, ETime) {
+        //  const VStart = new Date(VTime.start).getTime();
+        //  const VEnd = new Date(VTime.end).getTime();
+        //  const ETime = new Date(ETime).getTime();
          
 
-         return VStart <=ETime  && ETime <= VEnd; // 判斷兩個時間段是否有重疊
+        //  return VStart <=ETime  && ETime <= VEnd; // 判斷兩個時間段是否有重疊
+        // }
+        // 時間重疊函式(長者單一時間，志工為多個時間-字串陣列)
+        function isTimeOverlap(volunteerTimes, elderTime) {
+          const ETime = new Date(elderTime).getTime();
+
+          return volunteerTimes.some((timeRange) => {
+            // timeRange: "2025-11-14 08:00-12:00"
+            const [datePart, hoursPart] = timeRange.split(" "); // ["2025-11-14", "08:00-12:00"]
+            const [startHour, endHour] = hoursPart.split("-");  // ["08:00", "12:00"]
+
+            const start = new Date(`${datePart}T${startHour}:00`).getTime();
+            const end = new Date(`${datePart}T${endHour}:00`).getTime();
+
+            return start <= ETime && ETime <= end;
+            });
         }
 
 
@@ -54,7 +69,7 @@ router.post('/', async (req, res) => {
             return (
                 v.gender === elderGender    // ⭐ 重點：依長者性別比對
                 &&
-                v.availableTimes.some(VTime => isTimeOverlap(VTime, ETime))  // 任一時間段重疊即可     
+                 isTimeOverlap(v.available_times, time) // 任一時間段重疊即可     
             );
         });
 
