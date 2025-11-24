@@ -22,13 +22,19 @@ function getDistanceFromLatLng(lat1, lng1, lat2, lng2) {
 
 router.post('/', async (req, res) => {
     try {
-        const { elder_user_id, date, time } = req.body;  
+        const { elder_user_id, date, time, location } = req.body;
 
         if (!elder_user_id) {
             return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
         }
 
         const elderDateTime = new Date(`${date}T${time}:00`).getTime();
+        const elderLat = location?.lat;   //取得長者經緯度(前端)
+        const elderLng = location?.lng;
+
+        if (!elderLat || !elderLng) {
+            return res.status(400).json({ success: false, message: "長者未設定經緯度" });
+        }
 
         // 查詢長者資料
         const { data: elder, error: elderError } = await supabase
@@ -41,12 +47,8 @@ router.post('/', async (req, res) => {
         if (!elder) return res.status(404).json({ success: false, message: "找不到該長者" });
 
         const elderGender = elder.gender;
-        const elderLat = elder.location?.lat;
-        const elderLng = elder.location?.lng;
-
-        if (!elderLat || !elderLng) {
-            return res.status(400).json({ success: false, message: "長者未設定經緯度" });
-        }
+        
+        
 
         // 查詢志工
         const { data: volunteers, error: volunteerError } = await supabase
