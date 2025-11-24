@@ -55,7 +55,7 @@ router.post("/", async (req, res) => {
 
     if (error) return res.status(400).json({ success: false, message: error.message });
     if (!data || data.length === 0) {
-      return res.json({ success: true, data: [], message: "近 7 天無血壓紀錄" });
+      return res.json({ success: true, data: [], advice: "近 7 天無血壓紀錄" });
     }
 
     // 組成 prompt
