@@ -44,18 +44,14 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
     }
 
-    // 取得 7 天前日期
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const sevenDaysAgoISO = sevenDaysAgo.toISOString();
-
-    // 取得 Supabase 血壓資料
+    // 📌 取得最近的7筆資料
     const { data, error } = await supabase
       .from(table)
       .select("elder_user_id, elder_name, systolic, diastolic, recorded_time")
       .eq("elder_user_id", elder_user_id)
-      .gte("recorded_time", sevenDaysAgoISO)
-      .order("recorded_time", { ascending: true });
+      .order("recorded_time", { ascending: false }) // 時間由新 → 舊
+      .limit(7);                                     // 只取最新 7 筆
+
 
     if (error) return res.status(400).json({ success: false, message: error.message });
     if (!data || data.length === 0) {
