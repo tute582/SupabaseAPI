@@ -1,11 +1,11 @@
 import express from "express";
 import supabase from "../supabaseClient.js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = express.Router();
 
 // 初始化 Gemini
-const genAI = new GoogleGenerativeAI("AIzaSyC8l6uLIGsBZ4TgvGT70NjiTMwAbxIGPJc");//需修改位置 和key一起 GOOGLE_API_KEY  另存到.env
+const genAI = new GoogleGenerativeAI(AIzaSyC8l6uLIGsBZ4TgvGT70NjiTMwAbxIGPJc);//需修改位置 和key一起 GOOGLE_API_KEY
 const embeddingModel = genAI.getGenerativeModel({ model: "models/text-embedding-004" });
 
 // 計算距離 (Haversine)
@@ -47,7 +47,7 @@ function isTimeOverlap(volunteerTimes, elderDateTime) {
 
 router.post('/', async (req, res) => {
     try {
-        const { elder_user_id, date, time, location } = req.body;   //前端取得:長者id、時間、地點經緯度
+        const { elder_user_id, date, time, location } = req.body; 
 
          // 長者時間格式驗證
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
