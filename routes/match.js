@@ -1,4 +1,5 @@
 //Gemini HTTP API 產生性格 embedding
+//長者資訊從前端讀取
 import express from "express";
 import supabase from "../supabaseClient.js";
 import fetch from "node-fetch";
@@ -66,13 +67,20 @@ function cosineSimilarity(a, b) {
 // ======================
 router.post('/', async (req, res) => {
     try {
-        const { elder_user_id, date, time } = req.body;
+        const { elder_user_id, date, time ,location } = req.body;
 
         if (!elder_user_id) {
             return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
         }
 
         const elderDateTime = new Date(`${date}T${time}:00`).getTime();
+
+        const elderLat = location?.lat;
+        const elderLng = location?.lng;
+
+        if (!elderLat || !elderLng) {
+            return res.status(400).json({ success: false, message: "長者未設定經緯度" });
+        }
 
         // 取得長者資料
         const { data: elder, error: elderError } = await supabase
@@ -85,12 +93,12 @@ router.post('/', async (req, res) => {
         if (!elder) return res.status(404).json({ success: false, message: "找不到該長者" });
 
         const elderGender = elder.gender;
-        const elderLat = elder.location?.lat;
-        const elderLng = elder.location?.lng;
+        // const elderLat = elder.location?.lat;
+        // const elderLng = elder.location?.lng;
 
-        if (!elderLat || !elderLng) {
-            return res.status(400).json({ success: false, message: "長者未設定經緯度" });
-        }
+        // if (!elderLat || !elderLng) {
+        //     return res.status(400).json({ success: false, message: "長者未設定經緯度" });
+        // }
 
         // ======================
         // 取得志工資料
