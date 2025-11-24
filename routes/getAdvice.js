@@ -41,7 +41,7 @@ router.post("/", async (req, res) => {
   try {
     const { elder_user_id } = req.body;
     if (!elder_user_id) {
-      return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
+      return res.status(400).json({ success: false, message: "缺少 elder_user_id",advice:"請點擊右上角[未登入]按鈕進行登入" });
     }
 
     // 📌 取得最近的7筆資料
@@ -51,7 +51,6 @@ router.post("/", async (req, res) => {
       .eq("elder_user_id", elder_user_id)
       .order("recorded_time", { ascending: false }) // 時間由新 → 舊
       .limit(7);                                     // 只取最新 7 筆
-
 
     if (error) return res.status(400).json({ success: false, message: error.message });
     if (!data || data.length === 0) {
