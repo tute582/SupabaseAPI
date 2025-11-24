@@ -5,7 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const router = express.Router();
 
 // 初始化 Gemini
-const genAI = new GoogleGenerativeAI("AIzaSyC8l6uLIGsBZ4TgvGT70NjiTMwAbxIGPJc");//需修改位置 和key一起 GOOGLE_API_KEY
+const genAI = new GoogleGenerativeAI("AIzaSyC8l6uLIGsBZ4TgvGT70NjiTMwAbxIGPJc");//需修改位置 和key一起 GOOGLE_API_KEY  另存到.env
 const embeddingModel = genAI.getGenerativeModel({ model: "models/text-embedding-004" });
 
 // 計算距離 (Haversine)
@@ -47,15 +47,27 @@ function isTimeOverlap(volunteerTimes, elderDateTime) {
 
 router.post('/', async (req, res) => {
     try {
-        const { elder_user_id, date, time } = req.body; // location
+        const { elder_user_id, date, time, location } = req.body;   //前端取得:長者id、時間、地點經緯度
+
+         // 長者時間格式驗證
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        const timeRegex = /^\d{2}:\d{2}$/;
 
         if (!elder_user_id) {
             return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
+        }        
+
+        if (!dateRegex.test(date)) {
+            return res.status(400).json({ success: false, message: "日期格式錯誤，應為 YYYY-MM-DD" });
         }
 
-        const elderDateTime = new Date(`${date}T${time}:00`).getTime();
-        // const elderLat = location?.lat;
-        // const elderLng = location?.lng;
+        if (!timeRegex.test(time)) {
+            return res.status(400).json({ success: false, message: "時間格式錯誤，應為 HH:MM" });
+        }
+
+        // const elderDateTime = new Date(`${date}T${time}:00`).getTime();
+        const elderLat = location?.lat;
+        const elderLng = location?.lng;
 
         if (!elderLat || !elderLng) {
             return res.status(400).json({ success: false, message: "長者未設定經緯度" });
@@ -71,9 +83,9 @@ router.post('/', async (req, res) => {
         if (!elder) return res.status(404).json({ success: false, message: "找不到該長者" });
 
         const elderGender = elder.gender;
-        const elderLat = elder.location?.lat;
-        const elderLng = elder.location?.lng;
-        
+        // const elderLat = elder.location?.lat;
+        // const elderLng = elder.location?.lng;
+
         const elderText = (elder.preference_tags || []).join("、");
         // 生成長者 embedding
         const elderEmbedRes = await embeddingModel.embedContent(elderText);
@@ -85,8 +97,22 @@ router.post('/', async (req, res) => {
             .select("volunteer_user_id, volunteer_name, gender, available_times, location, personality");
         if (volunteerError) throw volunteerError;
 
+
+        //志工時間 確保時間格式正確
+         const safeVolunteers = volunteers.filter(v => {
+            if (!Array.isArray(v.available_times)) return false;
+            return v.available_times.every(t => {
+                const parts = t.split(" ");
+                if (parts.length !== 2) return false;
+                if (!dateRegex.test(parts[0])) return false;
+                if (!/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(parts[1])) return false;
+                return true;
+            });
+        });
+
+
         // 先過濾硬性條件（性別 + 時間重疊）
-        const filteredVolunteers = volunteers.filter(v =>
+        const filteredVolunteers = safeVolunteers.filter(v =>
             v.gender === elderGender && isTimeOverlap(v.available_times, elderDateTime)
         );
 
