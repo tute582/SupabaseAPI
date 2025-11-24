@@ -47,15 +47,15 @@ function isTimeOverlap(volunteerTimes, elderDateTime) {
 
 router.post('/', async (req, res) => {
     try {
-        const { elder_user_id, date, time, location } = req.body;
+        const { elder_user_id, date, time } = req.body; // location
 
         if (!elder_user_id) {
             return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
         }
 
         const elderDateTime = new Date(`${date}T${time}:00`).getTime();
-        const elderLat = location?.lat;
-        const elderLng = location?.lng;
+        // const elderLat = location?.lat;
+        // const elderLng = location?.lng;
 
         if (!elderLat || !elderLng) {
             return res.status(400).json({ success: false, message: "長者未設定經緯度" });
@@ -71,8 +71,10 @@ router.post('/', async (req, res) => {
         if (!elder) return res.status(404).json({ success: false, message: "找不到該長者" });
 
         const elderGender = elder.gender;
-        const elderText = elder.preference_tags || "";
-
+        const elderLat = elder.location?.lat;
+        const elderLng = elder.location?.lng;
+        
+        const elderText = (elder.preference_tags || []).join("、");
         // 生成長者 embedding
         const elderEmbedRes = await embeddingModel.embedContent(elderText);
         const elderVec = elderEmbedRes.embedding.values;
@@ -92,11 +94,11 @@ router.post('/', async (req, res) => {
 
         // 生成志工 embedding 並計算相似度
         for (const v of filteredVolunteers) {
-            const vText = v.personality || "";
-            const embedRes = await embeddingModel.embedContent(vText);
-            const vVec = embedRes.embedding.values;
+            const volunteersText = (v.personality || []).join("、");
+            const embedRes = await embeddingModel.embedContent(volunteersText);
+            const volunteersVec = embedRes.embedding.values;
 
-            const similarity = cosineSimilarity(elderVec, vVec);
+            const similarity = cosineSimilarity(elderVec, volunteersVec);
 
             const vLat = v.location?.lat;
             const vLng = v.location?.lng;
