@@ -173,7 +173,13 @@ console.log("第一個志工的 Personality 原始資料:", volunteers[0]?.perso
         volunteer_user_id: v.volunteer_user_id,
         volunteer_name: v.volunteer_name,
         distance: distance ? Number(distance.toFixed(2)) : null, // 距離取小數兩位
-        personality_score: Number(personalityScore.toFixed(4)) // 性格分數取小數四位
+        personality_score: Number(personalityScore.toFixed(4)), // 性格分數取小數四位
+        elderEmbedding: elderEmbedding ? 
+            { length: elderEmbedding.length, values: elderEmbedding.slice(0, 5) } : null,
+        vEmbedding: vEmbedding ? 
+            { length: vEmbedding.length, values: vEmbedding.slice(0, 5) } : null,
+        personality_score: Number(personalityScore.toFixed(4))
+      };
       };
     }));
 
