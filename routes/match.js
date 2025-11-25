@@ -36,32 +36,27 @@ async function getPersonalityEmbedding(text) {
   try {
     if (!text) return null;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/textembedding-gecko-001:embedText?key=${GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${GEMINI_API_KEY}`;
 
-    const response = await axios.post(
-      url,
-      { text: text },  // ✅ 正確欄位
-      { headers: { "Content-Type": "application/json" } }
-    );
+    const payload = {
+      model: "text-embedding-004",
+      content: {
+        parts: [
+          { text }
+        ]
+      }
+    };
 
-    console.log("送出文字:", text);
-    console.log("回傳資料:", response.data);
+    const response = await axios.post(url, payload, {
+      headers: { "Content-Type": "application/json" }
+    });
 
-    // Google API 的正確回傳格式：
+    // Google 回傳格式：
     // { embedding: { values: [...] } }
-    const embedding = response.data?.embedding?.embedding || 
-                      response.data?.embedding?.values ||
-                      null;
+    return response.data?.embedding?.values || null;
 
-    if (!embedding) {
-      console.warn("⚠️ 無法從 Gemini 抓取 embedding");
-      return null;
-    }
-
-    return embedding;
-
-  } catch (error) {
-    console.error("Embedding 錯誤:", error.response?.data || error.message);
+  } catch (err) {
+    console.error("Embedding API 錯誤:", err.response?.data || err);
     return null;
   }
 }
