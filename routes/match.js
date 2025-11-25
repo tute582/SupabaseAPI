@@ -62,7 +62,16 @@ async function getPersonalityEmbedding(text) {
       { text: text }, // request body
       { headers: { "Content-Type": "application/json" } } // config
     );
-    return response.data?.embedding?.values || null;
+
+    console.log(`Gemini API 回覆 (Text: ${text.substring(0, 10)}...):`, JSON.stringify(response.data, null, 2));
+
+    if (response.data?.embedding?.values && Array.isArray(response.data.embedding.values)) {
+        return response.data.embedding.values;
+    } else {
+        console.error("Gemini 回覆結構錯誤或缺少 Embedding。");
+        return null;
+    }
+    
   } catch (err) {
     console.error("Embedding API 錯誤:", err.response?.data || err.message);
     return null;
@@ -164,8 +173,6 @@ console.log("第一個志工的 Personality 原始資料:", volunteers[0]?.perso
         volunteer_user_id: v.volunteer_user_id,
         volunteer_name: v.volunteer_name,
         distance: distance ? Number(distance.toFixed(2)) : null, // 距離取小數兩位
-        elderEmbedding,
-        vEmbedding,
         personality_score: Number(personalityScore.toFixed(4)) // 性格分數取小數四位
       };
     }));
