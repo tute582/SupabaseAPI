@@ -173,6 +173,13 @@ router.post('/', async (req, res) => {
             // ⭐ 志工性格 embedding
             const volunteerText = arrayToPersonalityText(v.personality);
             const volunteerEmbedding = await getPersonalityEmbedding(volunteerText);
+            // 🔥 Debug
+            console.log("ELDER TEXT:", elderPersonalityText);
+            console.log("ELDER EMBEDDING:", elderEmbedding?.length);
+
+            console.log("VOL TEXT:", volunteerText);
+            console.log("VOL EMBEDDING:", volunteerEmbedding?.length);
+
 
             // ⭐ 性格相似度
             const personalityScore = elderEmbedding && volunteerEmbedding
@@ -190,7 +197,7 @@ router.post('/', async (req, res) => {
         return res.status(200).json({
             success: true,
             count: matchedVolunteers.length,
-            volunteers: matchedVolunteers
+            volunteers: matchedVolunteers,
         });
 
     } catch (err) {
