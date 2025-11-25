@@ -187,6 +187,7 @@ router.post('/', async (req, res) => {
                 personality_score: Number(personalityScore.toFixed(4))
             });
         }
+        matchedVolunteers.sort((a, b) => b.similarity - a.similarity);
 
         return res.status(200).json({
             success: true,
