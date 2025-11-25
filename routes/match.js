@@ -36,20 +36,30 @@ async function getPersonalityEmbedding(text) {
       return null;
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${apiKey}`;
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${apiKey}`;
 
     const response = await axios.post(
       url,
-      { "input": text },
+      { "input": text },   // 🔥 正確欄位
       { headers: { "Content-Type": "application/json" } }
     );
 
+    // 🔥 正確的路徑
     return response.data.embeddings?.[0]?.values ?? null;
 
   } catch (error) {
-    console.error("❗ 取得 embedding 錯誤：", error.response?.data || error.message);
+    console.error("Embedding 錯誤:", error.response?.data || error.message);
     return null;
   }
+}
+
+//字串陣列
+function arrayToPersonalityText(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) {
+    return "無內容";
+  }
+  return arr.join("；");
 }
 
 
@@ -138,7 +148,7 @@ router.post('/', async (req, res) => {
         // ⭐ 產生長者性格向量（透過 Gemini）
         // personality 欄位請自行在 DB 內建立
         // ======================
-        const elderPersonalityText = (elder.preference_tags || []).join("、") || "無描述";
+        const elderPersonalityText = arrayToPersonalityText(elder.preference_tags);
         const elderEmbedding = await getPersonalityEmbedding(elderPersonalityText);
 
         // ======================
@@ -161,7 +171,7 @@ router.post('/', async (req, res) => {
                     : null;
 
             // ⭐ 志工性格 embedding
-            const volunteerText = (v.personality || []).join("、") || "無描述";
+            const volunteerText = arrayToPersonalityText(v.personality);
             const volunteerEmbedding = await getPersonalityEmbedding(volunteerText);
 
             // ⭐ 性格相似度
