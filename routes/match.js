@@ -1,6 +1,6 @@
 import express from "express";
 import supabase from "../supabaseClient.js";
-//import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = express.Router();
 
