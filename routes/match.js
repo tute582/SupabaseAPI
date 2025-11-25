@@ -1,8 +1,14 @@
 //Gemini HTTP API 產生性格 embedding
 import express from "express";
 import supabase from "../supabaseClient.js";
+import dotenv from 'dotenv';
 import axios from "axios";
+
+dotenv.config();
 const router = express.Router();
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+
 
 // ======================
 // 🧭 計算距離 (Haversine)
@@ -30,8 +36,8 @@ async function getPersonalityEmbedding(text) {
   try {
     if (!text) return null;
 
-    const apiKey = 'AIzaSyC8l6uLIGsBZ4TgvGT70NjiTMwAbxIGPJc';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${apiKey}`;
+    
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${GEMINI_API_KEY}`;
 
     const response = await axios.post(
       url,
