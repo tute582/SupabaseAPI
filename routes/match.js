@@ -36,28 +36,25 @@ async function getPersonalityEmbedding(text) {
   try {
     if (!text) return null;
 
-    
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/textembedding-gecko-001:embedText?key=${GEMINI_API_KEY}`;
 
     const response = await axios.post(
       url,
-      { input: text },
+      { text: text },  // ✅ 正確欄位
       { headers: { "Content-Type": "application/json" } }
     );
 
     console.log("送出文字:", text);
-    console.log("Gemini 回傳資料:", response.data);
+    console.log("回傳資料:", response.data);
 
-    // ===== 自動抓取 embedding =====
-    let embedding = null;
-    if (response.data.embedding) {
-      embedding = response.data.embedding;
-    } else if (response.data.data?.[0]?.embedding) {
-      embedding = response.data.data[0].embedding;
-    }
+    // Google API 的正確回傳格式：
+    // { embedding: { values: [...] } }
+    const embedding = response.data?.embedding?.embedding || 
+                      response.data?.embedding?.values ||
+                      null;
 
     if (!embedding) {
-      console.warn("⚠️ 無法從 Gemini 回傳抓到 embedding");
+      console.warn("⚠️ 無法從 Gemini 抓取 embedding");
       return null;
     }
 
@@ -68,6 +65,7 @@ async function getPersonalityEmbedding(text) {
     return null;
   }
 }
+
 
 //字串陣列
 function arrayToPersonalityText(arr) {
