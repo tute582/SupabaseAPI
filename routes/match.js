@@ -131,6 +131,10 @@ router.post("/", async (req, res) => {
     
     if (volunteerError) throw volunteerError;
 
+    // ⚠️ 增加除錯行 ⚠️
+console.log("第一個志工的 Personality 原始資料:", volunteers[0]?.personality); 
+// ⚠️ 增加除錯行 ⚠️
+
     // 3. 匹配志工並計算分數
     const matchedVols = await Promise.all(volunteers.map(async (v) => {
       // 條件篩選 1: 性別 (若業務強制同性別)
