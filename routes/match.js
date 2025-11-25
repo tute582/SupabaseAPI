@@ -52,30 +52,37 @@ function cosineSimilarity(a, b) {
 }
 
 // ✨ Gemini 取得 embedding
+// ======================
+// ✨ Gemini 取得 embedding (修正版)
+// ======================
 async function getPersonalityEmbedding(text) {
-  try {
-    if (!text || text === "無內容") return null;
-    const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-3-large:embedText?key=${GEMINI_API_KEY}`;
-    // 修正: axios.post 的呼叫語法
-    const response = await axios.post(
-      url,
-      { text: text }, // request body
-      { headers: { "Content-Type": "application/json" } } // config
-    );
+  try {
+    if (!text || text === "無內容") return null;
+    const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-3-large:embedText?key=${GEMINI_API_KEY}`;
+    
+    const response = await axios.post(
+      url,
+      { text: text }, // request body
+      { headers: { "Content-Type": "application/json" } } // config
+    );
 
-    console.log(`Gemini API 回覆 (Text: ${text.substring(0, 10)}...):`, JSON.stringify(response.data, null, 2));
+    // 📢 保持除錯行，有助於確認結構 (部署前可移除)
+    console.log(`Gemini API 回覆 (Text: ${text.substring(0, 10)}...):`, JSON.stringify(response.data, null, 2));
 
-    if (response.data?.embedding?.values && Array.isArray(response.data.embedding.values)) {
-        return response.data.embedding.values;
-    } else {
-        console.error("Gemini 回覆結構錯誤或缺少 Embedding。");
-        return null;
-    }
-    
-  } catch (err) {
-    console.error("Embedding API 錯誤:", err.response?.data || err.message);
-    return null;
-  }
+    // 🚀 關鍵修正：使用 'embeddings' 並取得陣列中的第一個元素
+    const embeddingValues = response.data?.embeddings?.[0]?.values;
+
+    if (embeddingValues && Array.isArray(embeddingValues)) {
+        return embeddingValues;
+    } else {
+        console.error("Gemini 回覆結構錯誤或缺少 embeddings 向量。");
+        return null;
+    }
+    
+  } catch (err) {
+    console.error("Embedding API 錯誤:", err.response?.data || err.message);
+    return null;
+  }
 }
 
 // ⏳ 時間重疊檢查
