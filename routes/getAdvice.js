@@ -69,7 +69,8 @@ router.post("/", async (req, res) => {
     res.json({
       success: true,
       data,
-      advice: adviceResult.text
+      advice: adviceResult.text,
+      error: adviceResult.error
     });
 
   } catch (err) {
