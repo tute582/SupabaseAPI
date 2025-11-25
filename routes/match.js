@@ -26,27 +26,24 @@ function getDistanceFromLatLng(lat1, lng1, lat2, lng2) {
 // ======================
 // ✨ Gemini HTTP API 產生性格 embedding
 // ======================
-
-
 async function getPersonalityEmbedding(text) {
   try {
-    const apiKey = 'AIzaSyC8l6uLIGsBZ4TgvGT70NjiTMwAbxIGPJc';
-    if (!apiKey) {
-      console.error("❗ 缺少 GOOGLE_API_KEY");
-      return null;
-    }
+    if (!text) return null;
 
-    const url =
-      `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${apiKey}`;
+    const apiKey = 'AIzaSyC8l6uLIGsBZ4TgvGT70NjiTMwAbxIGPJc';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${apiKey}`;
 
     const response = await axios.post(
       url,
-      { "input": text },   // 🔥 正確欄位
+      { input: text },
       { headers: { "Content-Type": "application/json" } }
     );
 
-    // 🔥 正確的路徑
-    return response.data.embeddings?.[0]?.values ?? null;
+    // 🔹 log 回傳結果
+    console.log("Gemini 回傳資料:", response.data);
+
+    // 🔹 正確路徑: text-embedding-004 回傳 embedding 在 response.data.embedding
+    return response.data.embedding ?? null;
 
   } catch (error) {
     console.error("Embedding 錯誤:", error.response?.data || error.message);
@@ -62,8 +59,6 @@ function arrayToPersonalityText(arr) {
   return arr.join("；");
 }
 
-
-
 // ======================
 // 🔢 cosine similarity
 // ======================
@@ -71,7 +66,6 @@ function cosineSimilarity(a, b) {
     if (!a || !b || a.length !== b.length) return 0;
 
     let dot = 0, na = 0, nb = 0;
-
     for (let i = 0; i < a.length; i++) {
         dot += a[i] * b[i];
         na += a[i] ** 2;
@@ -86,19 +80,12 @@ function cosineSimilarity(a, b) {
 router.post('/', async (req, res) => {
     try {
         const { elder_user_id, date, time, location } = req.body;
-
-        if (!elder_user_id) {
-            return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
-        }
+        if (!elder_user_id) return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
 
         const elderDateTime = new Date(`${date}T${time}:00`).getTime();
-
         const elderLat = location?.lat;
         const elderLng = location?.lng;
-
-        if (!elderLat || !elderLng) {
-            return res.status(400).json({ success: false, message: "長者未設定經緯度" });
-        }
+        if (!elderLat || !elderLng) return res.status(400).json({ success: false, message: "長者未設定經緯度" });
 
         // 取得長者資料
         const { data: elder, error: elderError } = await supabase
@@ -106,17 +93,10 @@ router.post('/', async (req, res) => {
             .select("*")
             .eq("elder_user_id", elder_user_id)
             .maybeSingle();
-
         if (elderError) throw elderError;
         if (!elder) return res.status(404).json({ success: false, message: "找不到該長者" });
 
         const elderGender = elder.gender;
-        // const elderLat = elder.location?.lat;
-        // const elderLng = elder.location?.lng;
-
-        // if (!elderLat || !elderLng) {
-        //     return res.status(400).json({ success: false, message: "長者未設定經緯度" });
-        // }
 
         // ======================
         // 取得志工資料
@@ -124,7 +104,6 @@ router.post('/', async (req, res) => {
         const { data: volunteers, error: volunteerError } = await supabase
             .from("志工資訊")
             .select("volunteer_user_id, volunteer_name, gender, available_times, location, personality");
-
         if (volunteerError) throw volunteerError;
 
         // ======================
@@ -132,68 +111,65 @@ router.post('/', async (req, res) => {
         // ======================
         function isTimeOverlap(volTimes, elderDateTime) {
             if (!Array.isArray(volTimes)) return false;
-
             return volTimes.some((timeRange) => {
                 const [datePart, hoursPart] = timeRange.split(" ");
                 const [startHour, endHour] = hoursPart.split("-");
-
                 const start = new Date(`${datePart}T${startHour}:00`).getTime();
                 const end = new Date(`${datePart}T${endHour}:00`).getTime();
-
                 return start <= elderDateTime && elderDateTime <= end;
             });
         }
 
         // ======================
-        // ⭐ 產生長者性格向量（透過 Gemini）
-        // personality 欄位請自行在 DB 內建立
+        // ⭐ 長者 embedding
         // ======================
         const elderPersonalityText = arrayToPersonalityText(elder.preference_tags);
+        console.log("長者文字:", elderPersonalityText);
         const elderEmbedding = await getPersonalityEmbedding(elderPersonalityText);
+        console.log("長者 embedding:", elderEmbedding);
+
+        if (!elderEmbedding) return res.status(500).json({ success: false, message: "無法取得長者性格 embedding" });
 
         // ======================
-        // ✨ 篩選志工（性別 + 時間）
+        // ✨ 篩選志工 & 計算 embedding + similarity
         // ======================
-        const matchedVolunteers = [];
+        const matchedVolunteers = await Promise.all(volunteers.map(async v => {
+            if (v.gender !== elderGender) return null;
+            if (!isTimeOverlap(v.available_times, elderDateTime)) return null;
 
-        for (const v of volunteers) {
-
-            if (v.gender !== elderGender) continue;
-            if (!isTimeOverlap(v.available_times, elderDateTime)) continue;
-
-            // 🔍 計算距離
             const vLat = v.location?.lat;
             const vLng = v.location?.lng;
+            const distance = (elderLat && elderLng && vLat && vLng)
+                ? getDistanceFromLatLng(elderLat, elderLng, vLat, vLng)
+                : null;
 
-            const distance =
-                (elderLat && elderLng && vLat && vLng)
-                    ? getDistanceFromLatLng(elderLat, elderLng, vLat, vLng)
-                    : null;
-
-            // ⭐ 志工性格 embedding
+            // 志工 embedding
             const volunteerText = arrayToPersonalityText(v.personality);
             const volunteerEmbedding = await getPersonalityEmbedding(volunteerText);
-            
 
-            // ⭐ 性格相似度
-            const personalityScore = elderEmbedding && volunteerEmbedding
+            // 性格相似度
+            const personalityScore = volunteerEmbedding
                 ? cosineSimilarity(elderEmbedding, volunteerEmbedding)
                 : 0;
 
-            matchedVolunteers.push({
+            return {
                 volunteer_user_id: v.volunteer_user_id,
                 volunteer_name: v.volunteer_name,
                 distance,
                 personality_score: Number(personalityScore.toFixed(4))
-            });
-        }
-        matchedVolunteers.sort((a, b) => b.personality_score - a.personality_score);
+            };
+        }));
 
+        // 過濾 null
+        const filteredVolunteers = matchedVolunteers.filter(v => v !== null);
+
+        // 排序
+        filteredVolunteers.sort((a, b) => b.personality_score - a.personality_score);
 
         return res.status(200).json({
             success: true,
-            count: matchedVolunteers.length,
-            volunteers: matchedVolunteers,
+            count: filteredVolunteers.length,
+            volunteers: filteredVolunteers,
         });
 
     } catch (err) {
