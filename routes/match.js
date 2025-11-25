@@ -30,27 +30,28 @@ function getDistanceFromLatLng(lat1, lng1, lat2, lng2) {
 
 async function getPersonalityEmbedding(text) {
   try {
-    const apiKey = 'AIzaSyC8l6uLIGsBZ4TgvGT70NjiTMwAbxIGPJc'; //可能需要修改位置
+    const apiKey = 'AIzaSyC8l6uLIGsBZ4TgvGT70NjiTMwAbxIGPJc';
+    if (!apiKey) {
+      console.error("❗ 缺少 GOOGLE_API_KEY");
+      return null;
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${apiKey}`;
 
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${apiKey}`,
-      { text }, // POST body
-      {
-        headers: {
-          "Content-Type": "application/json"
-        }
-      }
+      url,
+      { "input": text },
+      { headers: { "Content-Type": "application/json" } }
     );
 
-    const data = response.data;
+    return response.data.embeddings?.[0]?.values ?? null;
 
-    if (!data.embedding) return null;
-    return data.embedding.values; // 回傳 embedding 向量 (array)
   } catch (error) {
-    console.error("Error fetching embedding:", error.response?.data || error.message);
+    console.error("❗ 取得 embedding 錯誤：", error.response?.data || error.message);
     return null;
   }
 }
+
 
 
 // ======================
