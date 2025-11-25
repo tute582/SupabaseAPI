@@ -39,11 +39,23 @@ async function getPersonalityEmbedding(text) {
       { headers: { "Content-Type": "application/json" } }
     );
 
-    // 🔹 log 回傳結果
+    console.log("送出文字:", text);
     console.log("Gemini 回傳資料:", response.data);
 
-    // 🔹 正確路徑: text-embedding-004 回傳 embedding 在 response.data.embedding
-    return response.data.embedding ?? null;
+    // ===== 自動抓取 embedding =====
+    let embedding = null;
+    if (response.data.embedding) {
+      embedding = response.data.embedding;
+    } else if (response.data.data?.[0]?.embedding) {
+      embedding = response.data.data[0].embedding;
+    }
+
+    if (!embedding) {
+      console.warn("⚠️ 無法從 Gemini 回傳抓到 embedding");
+      return null;
+    }
+
+    return embedding;
 
   } catch (error) {
     console.error("Embedding 錯誤:", error.response?.data || error.message);
@@ -124,9 +136,7 @@ router.post('/', async (req, res) => {
         // ⭐ 長者 embedding
         // ======================
         const elderPersonalityText = arrayToPersonalityText(elder.preference_tags);
-        console.log("長者文字:", elderPersonalityText);
         const elderEmbedding = await getPersonalityEmbedding(elderPersonalityText);
-        console.log("長者 embedding:", elderEmbedding);
 
         if (!elderEmbedding) return res.status(500).json({ success: false, message: "無法取得長者性格 embedding" });
 
@@ -147,7 +157,6 @@ router.post('/', async (req, res) => {
             const volunteerText = arrayToPersonalityText(v.personality);
             const volunteerEmbedding = await getPersonalityEmbedding(volunteerText);
 
-            // 性格相似度
             const personalityScore = volunteerEmbedding
                 ? cosineSimilarity(elderEmbedding, volunteerEmbedding)
                 : 0;
@@ -160,10 +169,7 @@ router.post('/', async (req, res) => {
             };
         }));
 
-        // 過濾 null
         const filteredVolunteers = matchedVolunteers.filter(v => v !== null);
-
-        // 排序
         filteredVolunteers.sort((a, b) => b.personality_score - a.personality_score);
 
         return res.status(200).json({
