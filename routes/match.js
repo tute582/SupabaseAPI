@@ -33,8 +33,8 @@ function getDistanceFromLatLng(lat1, lng1, lat2, lng2) {
 async function getPersonalityEmbedding(text) {
   try {
     if (!text) return null;
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${GEMINI_API_KEY}`;
-    const response = await axios.post(
+    const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-3-large:embedText?key=${GEMINI_API_KEY}`;
+    const response = await axios.post
       url,
       { text },
       { headers: { "Content-Type": "application/json" } }
