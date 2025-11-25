@@ -180,7 +180,7 @@ console.log("第一個志工的 Personality 原始資料:", volunteers[0]?.perso
             { length: vEmbedding.length, values: vEmbedding.slice(0, 5) } : null,
         personality_score: Number(personalityScore.toFixed(4))
       };
-      };
+      
     }));
 
     // 4. 篩選與排序
