@@ -1,7 +1,7 @@
 //Gemini HTTP API 產生性格 embedding
 import express from "express";
 import supabase from "../supabaseClient.js";
-
+import axios from "axios";
 const router = express.Router();
 
 // ======================
@@ -26,7 +26,7 @@ function getDistanceFromLatLng(lat1, lng1, lat2, lng2) {
 // ======================
 // ✨ Gemini HTTP API 產生性格 embedding
 // ======================
-import axios from "axios";
+
 
 async function getPersonalityEmbedding(text) {
   try {
@@ -137,7 +137,7 @@ router.post('/', async (req, res) => {
         // ⭐ 產生長者性格向量（透過 Gemini）
         // personality 欄位請自行在 DB 內建立
         // ======================
-        const elderPersonalityText = elder.personality || "無描述";
+        const elderPersonalityText = (elder.preference_tags || []).join("、") || "無描述";
         const elderEmbedding = await getPersonalityEmbedding(elderPersonalityText);
 
         // ======================
@@ -160,7 +160,8 @@ router.post('/', async (req, res) => {
                     : null;
 
             // ⭐ 志工性格 embedding
-            const volunteerEmbedding = await getPersonalityEmbedding(v.personality || "無描述");
+            const volunteerText = (v.personality || []).join("、") || "無描述";
+            const volunteerEmbedding = await getPersonalityEmbedding(volunteerText);
 
             // ⭐ 性格相似度
             const personalityScore = elderEmbedding && volunteerEmbedding
