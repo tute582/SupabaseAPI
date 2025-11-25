@@ -36,23 +36,15 @@ async function getPersonalityEmbedding(text) {
   try {
     if (!text) return null;
 
-    const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${GEMINI_API_KEY}`;
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedText?key=${GEMINI_API_KEY}`;
 
-    const payload = {
-      model: "text-embedding-004",
-      content: {
-        parts: [
-          { text }
-        ]
-      }
-    };
+    const response = await axios.post(
+      url,
+      { text },
+      { headers: { "Content-Type": "application/json" } }
+    );
 
-    const response = await axios.post(url, payload, {
-      headers: { "Content-Type": "application/json" }
-    });
-
-    // Google 回傳格式：
-    // { embedding: { values: [...] } }
     return response.data?.embedding?.values || null;
 
   } catch (err) {
