@@ -6,6 +6,7 @@ import express from "express";
 import supabase from "../supabaseClient.js";
 import dotenv from "dotenv";
 import axios from "axios";
+import { getGeminiResponse } from "./getAdvice.js";
 
 dotenv.config();
 const router = express.Router();
@@ -23,8 +24,7 @@ function getDistanceFromLatLng(lat1, lng1, lat2, lng2) {
   const dLng = toRad(lng2 - lng1);
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLng / 2) ** 2;
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -41,7 +41,9 @@ function cosineSimilarity(a, b) {
   const len = Math.min(a.length, b.length);
   if (len === 0) return 0;
 
-  let dot = 0, na = 0, nb = 0;
+  let dot = 0,
+    na = 0,
+    nb = 0;
   for (let i = 0; i < len; i++) {
     dot += a[i] * b[i];
     na += a[i] ** 2;
@@ -56,33 +58,34 @@ function cosineSimilarity(a, b) {
 // ✨ Gemini 取得 embedding (修正版)
 // ======================
 async function getPersonalityEmbedding(text) {
-  try {
-    if (!text || text === "無內容") return null;
-    const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-3-large:embedText?key=${GEMINI_API_KEY}`;
-    
-    const response = await axios.post(
-      url,
-      { text: text }, // request body
-      { headers: { "Content-Type": "application/json" } } // config
-    );
+  try {
+    if (!text || text === "無內容") return null;
+    const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-3-large:embedText?key=${GEMINI_API_KEY}`;
+    const response = await axios.post(
+      url,
+      { text: text }, // request body
+      { headers: { "Content-Type": "application/json" } } // config
+    );
 
     // 📢 保持除錯行，有助於確認結構 (部署前可移除)
-    console.log(`Gemini API 回覆 (Text: ${text.substring(0, 10)}...):`, JSON.stringify(response.data, null, 2));
+    console.log(
+      `Gemini API 回覆 (Text: ${text.substring(0, 10)}...):`,
+      JSON.stringify(response.data, null, 2)
+    );
 
     // 🚀 關鍵修正：使用 'embeddings' 並取得陣列中的第一個元素
     const embeddingValues = response.data?.embeddings?.[0]?.values;
 
-    if (embeddingValues && Array.isArray(embeddingValues)) {
-        return embeddingValues;
-    } else {
-        console.error("Gemini 回覆結構錯誤或缺少 embeddings 向量。");
-        return null;
-    }
-    
-  } catch (err) {
-    console.error("Embedding API 錯誤:", err.response?.data || err.message);
-    return null;
-  }
+    if (embeddingValues && Array.isArray(embeddingValues)) {
+      return embeddingValues;
+    } else {
+      console.error("Gemini 回覆結構錯誤或缺少 embeddings 向量。");
+      return null;
+    }
+  } catch (err) {
+    console.error("Embedding API 錯誤:", err.response?.data || err.message);
+    return null;
+  }
 }
 
 // ⏳ 時間重疊檢查
@@ -97,9 +100,9 @@ function isTimeOverlap(volTimes, elderDateTime) {
     // 注意: 這假設 startHour 和 endHour 格式是 HH:MM
     const start = new Date(`${datePart}T${startHour}:00`).getTime();
     const end = new Date(`${datePart}T${endHour}:00`).getTime();
-    
+
     // 檢查長者指定時間是否在志工的可用區間內 (包含邊界)
-    return start <= elderTimestamp && elderTimestamp <= end;
+    return start <= elderTimestamp && elderTimestamp < end;
   });
 }
 
@@ -109,14 +112,23 @@ function isTimeOverlap(volTimes, elderDateTime) {
 router.post("/", async (req, res) => {
   try {
     const { elder_user_id, date, time, location } = req.body;
-    
+
     // 檢查輸入
-    if (!elder_user_id) return res.status(400).json({ success: false, message: "缺少 elder_user_id" });
-    if (!location?.lat || !location?.lng) return res.status(400).json({ success: false, message: "長者未設定經緯度" });
+    if (!elder_user_id)
+      return res
+        .status(400)
+        .json({ success: false, message: "缺少 elder_user_id" });
+    if (!location?.lat || !location?.lng)
+      return res
+        .status(400)
+        .json({ success: false, message: "長者未設定經緯度" });
 
     // 轉換時間為 Date 物件
     const elderDateTime = new Date(`${date}T${time}:00`);
-    if (isNaN(elderDateTime.getTime())) return res.status(400).json({ success: false, message: "日期或時間格式錯誤" });
+    if (isNaN(elderDateTime.getTime()))
+      return res
+        .status(400)
+        .json({ success: false, message: "日期或時間格式錯誤" });
 
     const elderLat = location.lat;
     const elderLng = location.lng;
@@ -129,84 +141,196 @@ router.post("/", async (req, res) => {
       .maybeSingle();
 
     if (elderError) throw elderError;
-    if (!elder) return res.status(404).json({ success: false, message: "找不到該長者" });
+    if (!elder)
+      return res.status(404).json({ success: false, message: "找不到該長者" });
 
     const elderGender = elder.gender;
-    const elderText = arrayToPersonalityText(elder.preference_tags);
-    const elderEmbedding = await getPersonalityEmbedding(elderText);
-
-    if (!elderEmbedding) {
-      // 建議: 即使無法取得 embedding，也應繼續配對，只是性格分數為 0
-      console.warn("無法取得長者性格 embedding，性格分數將為 0。");
-    }
 
     // 2. 取得志工資料
     const { data: volunteers, error: volunteerError } = await supabase
       .from("志工資訊")
-      .select("volunteer_user_id, volunteer_name, gender, available_times, location, personality");
-    
+      .select(
+        "volunteer_user_id, volunteer_name, gender, available_times, location, personality"
+      );
+
     if (volunteerError) throw volunteerError;
 
-    // ⚠️ 增加除錯行 ⚠️
-console.log("第一個志工的 Personality 原始資料:", volunteers[0]?.personality); 
-// ⚠️ 增加除錯行 ⚠️
-
     // 3. 匹配志工並計算分數
-    const matchedVols = await Promise.all(volunteers.map(async (v) => {
-      // 條件篩選 1: 性別 (若業務強制同性別)
-      if (v.gender !== elderGender) return null; 
+    const matchedVols = await Promise.all(
+      volunteers.map(async (v) => {
+        // 條件篩選 1: 性別 (若業務強制同性別)
+        if (v.gender !== elderGender) return null;
 
-      // 條件篩選 2: 時間重疊
-      if (!isTimeOverlap(v.available_times, elderDateTime)) return null;
+        // 條件篩選 2: 時間重疊
+        if (!isTimeOverlap(v.available_times, elderDateTime)) return null;
 
-      // 計算距離
-      const vLat = v.location?.lat;
-      const vLng = v.location?.lng;
-      const distance = (vLat && vLng) ? 
-        getDistanceFromLatLng(elderLat, elderLng, vLat, vLng) : 
-        null; // 無法計算距離
+        // 計算距離
+        const vLat = v.location?.lat;
+        const vLng = v.location?.lng;
+        const distance =
+          vLat && vLng
+            ? getDistanceFromLatLng(elderLat, elderLng, vLat, vLng)
+            : null; // 無法計算距離
 
-      // 計算性格分數
-      const vText = arrayToPersonalityText(v.personality);
-      const vEmbedding = await getPersonalityEmbedding(vText);
+        return {
+          volunteer_user_id: v.volunteer_user_id,
+          volunteer_personality: v.personality,
+        };
+      })
+    );
 
-      // 如果長者或志工的 Embedding 失敗，分數為 0
-      const personalityScore = 
-        (elderEmbedding && vEmbedding) ? 
-        cosineSimilarity(elderEmbedding, vEmbedding) : 
-        0;
+    const filteredVols = matchedVols.filter((v) => v != null);
 
-      return {
-        volunteer_user_id: v.volunteer_user_id,
-        volunteer_name: v.volunteer_name,
-        distance: distance ? Number(distance.toFixed(2)) : null, // 距離取小數兩位
-        personality_score: Number(personalityScore.toFixed(4)), // 性格分數取小數四位
-        elderEmbedding: elderEmbedding ? 
-            { length: elderEmbedding.length, values: elderEmbedding.slice(0, 5) } : null,
-        vEmbedding: vEmbedding ? 
-            { length: vEmbedding.length, values: vEmbedding.slice(0, 5) } : null,
-        personality_score: Number(personalityScore.toFixed(4))
-      };
-      
-    }));
+    // 組成 prompt
+    let summaryText = `幫我針對這位長者偏好特質，安排最適合他的志工以最適合到最不適合，回傳不要有多餘的文字，只要給我志工ID陣列，存放在陣列裡面就行，不要有任何格式化語法標註，比如 Markdown code block，也不需要任何換行符號等，只需要回傳陣列。\n`;
 
-    // 4. 篩選與排序
-    const filtered = matchedVols.filter(v => v !== null);
-    // 排序：預設只按 性格分數 (高到低)
-    filtered.sort((a, b) => b.personality_score - a.personality_score);
+    // 長輩
+    summaryText += "長輩偏好特質如下:\n";
+    summaryText += elder.preference_tags;
 
-    // ⚠️ 優化建議: 可以在這裡加入距離的權重計算，以得到綜合評分。
+    // 志工
+    summaryText += "\n所有志工性格如下:\n";
+    filteredVols.forEach((vol) => {
+      summaryText += `志工ID: ${vol.volunteer_user_id} 特質: ${vol.volunteer_personality} \n`;
+    });
+
+    // 呼叫 Gemini HTTP API
+    let matchResult = await getGeminiResponse(summaryText);
+    matchResult = JSON.parse(matchResult.text);
 
     return res.status(200).json({
       success: true,
-      count: filtered.length,
-      volunteers: filtered
+      count: matchResult.length,
+      volunteer_user_ids: matchResult,
     });
-
   } catch (err) {
     console.error("AI 配對錯誤：", err);
     return res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
+
+// router.post("/", async (req, res) => {
+//   try {
+//     const { elder_user_id, date, time, location } = req.body;
+
+//     // 檢查輸入
+//     if (!elder_user_id)
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "缺少 elder_user_id" });
+//     if (!location?.lat || !location?.lng)
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "長者未設定經緯度" });
+
+//     // 轉換時間為 Date 物件
+//     const elderDateTime = new Date(`${date}T${time}:00`);
+//     if (isNaN(elderDateTime.getTime()))
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "日期或時間格式錯誤" });
+
+//     const elderLat = location.lat;
+//     const elderLng = location.lng;
+
+//     // 1. 取得長者資料
+//     const { data: elder, error: elderError } = await supabase
+//       .from("長者資訊")
+//       .select("gender, preference_tags")
+//       .eq("elder_user_id", elder_user_id)
+//       .maybeSingle();
+
+//     if (elderError) throw elderError;
+//     if (!elder)
+//       return res.status(404).json({ success: false, message: "找不到該長者" });
+
+//     const elderGender = elder.gender;
+//     const elderText = arrayToPersonalityText(elder.preference_tags);
+//     const elderEmbedding = await getPersonalityEmbedding(elderText);
+
+//     if (!elderEmbedding) {
+//       // 建議: 即使無法取得 embedding，也應繼續配對，只是性格分數為 0
+//       console.warn("無法取得長者性格 embedding，性格分數將為 0。");
+//     }
+
+//     // 2. 取得志工資料
+//     const { data: volunteers, error: volunteerError } = await supabase
+//       .from("志工資訊")
+//       .select(
+//         "volunteer_user_id, volunteer_name, gender, available_times, location, personality"
+//       );
+
+//     if (volunteerError) throw volunteerError;
+
+//     // ⚠️ 增加除錯行 ⚠️
+//     console.log(
+//       "第一個志工的 Personality 原始資料:",
+//       volunteers[0]?.personality
+//     );
+//     // ⚠️ 增加除錯行 ⚠️
+
+//     // 3. 匹配志工並計算分數
+//     const matchedVols = await Promise.all(
+//       volunteers.map(async (v) => {
+//         // 條件篩選 1: 性別 (若業務強制同性別)
+//         if (v.gender !== elderGender) return null;
+
+//         // 條件篩選 2: 時間重疊
+//         if (!isTimeOverlap(v.available_times, elderDateTime)) return null;
+
+//         // 計算距離
+//         const vLat = v.location?.lat;
+//         const vLng = v.location?.lng;
+//         const distance =
+//           vLat && vLng
+//             ? getDistanceFromLatLng(elderLat, elderLng, vLat, vLng)
+//             : null; // 無法計算距離
+
+//         // 計算性格分數
+//         const vText = arrayToPersonalityText(v.personality);
+//         const vEmbedding = await getPersonalityEmbedding(vText);
+
+//         // 如果長者或志工的 Embedding 失敗，分數為 0
+//         const personalityScore =
+//           elderEmbedding && vEmbedding
+//             ? cosineSimilarity(elderEmbedding, vEmbedding)
+//             : 0;
+
+//         return {
+//           volunteer_user_id: v.volunteer_user_id,
+//           volunteer_name: v.volunteer_name,
+//           distance: distance ? Number(distance.toFixed(2)) : null, // 距離取小數兩位
+//           personality_score: Number(personalityScore.toFixed(4)), // 性格分數取小數四位
+//           elderEmbedding: elderEmbedding
+//             ? {
+//                 length: elderEmbedding.length,
+//                 values: elderEmbedding.slice(0, 5),
+//               }
+//             : null,
+//           vEmbedding: vEmbedding
+//             ? { length: vEmbedding.length, values: vEmbedding.slice(0, 5) }
+//             : null,
+//           personality_score: Number(personalityScore.toFixed(4)),
+//         };
+//       })
+//     );
+
+//     // 4. 篩選與排序
+//     const filtered = matchedVols.filter((v) => v !== null);
+//     // 排序：預設只按 性格分數 (高到低)
+//     filtered.sort((a, b) => b.personality_score - a.personality_score);
+
+//     // ⚠️ 優化建議: 可以在這裡加入距離的權重計算，以得到綜合評分。
+
+//     return res.status(200).json({
+//       success: true,
+//       count: filtered.length,
+//       volunteers: filtered,
+//     });
+//   } catch (err) {
+//     console.error("AI 配對錯誤：", err);
+//     return res.status(500).json({ success: false, message: "伺服器錯誤" });
+//   }
+// });
 
 export default router;
