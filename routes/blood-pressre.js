@@ -5,23 +5,23 @@ const table = "血壓紀錄";
 
 // 1. 取得所有血壓紀錄
 router.get("/", async (req, res) => {
-  try{
+  try {
     const { data, error } = await supabase
-        .from(table)
-        .select("*")
-        .order("created_at", { ascending: false });
+      .from(table)
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    if (error) return res.status(400).json({ success: false, message: error.message });
+    if (error)
+      return res.status(400).json({ success: false, message: error.message });
     res.json({ success: true, data });
-  }
-  catch{
+  } catch {
     res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
 
 // 2. 取得特定長者的所有血壓紀錄
 router.get("/:elder_user_id", async (req, res) => {
-  try{
+  try {
     const { elder_user_id } = req.params;
 
     const { data, error } = await supabase
@@ -29,18 +29,18 @@ router.get("/:elder_user_id", async (req, res) => {
       .select("*")
       .eq("elder_user_id", elder_user_id)
       .order("created_at", { ascending: false });
-  
-    if (error) return res.status(400).json({ success: false, message: error.message });
+
+    if (error)
+      return res.status(400).json({ success: false, message: error.message });
     res.json({ success: true, data });
-  }
-  catch{
+  } catch {
     res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
 
 // 3. 取得特定長者的某案件血壓紀錄
 router.get("/:elder_user_id/:event_id", async (req, res) => {
-  try{
+  try {
     const { elder_user_id, event_id } = req.params;
 
     const { data, error } = await supabase
@@ -49,110 +49,108 @@ router.get("/:elder_user_id/:event_id", async (req, res) => {
       .eq("elder_user_id", elder_user_id)
       .eq("event_id", event_id)
       .maybeSingle();
-  
+
     if (error || !data)
       return res.status(404).json({ success: false, message: error.message });
     res.json({ success: true, data });
-  }
-  catch{
+  } catch {
     res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
 
 // 4. 新增血壓紀錄
 router.post("/", async (req, res) => {
-    try {
-        const newConsultation = req.body;
-        //存取建立血壓時間
-        const now = new Date();
-        const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-        newConsultation.created_at = taiwanTime
-          .toISOString()
-          .replace("T", " ")
-          .substring(0, 19)+ "+08"
-        
-        if (!newConsultation.elder_user_id) {
-            return res.status(400).json({ success: false, message: "缺少長者ID" });
-        }
+  try {
+    const newConsultation = req.body;
+    //存取建立血壓時間
+    const now = new Date();
+    const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    newConsultation.created_at =
+      taiwanTime.toISOString().replace("T", " ").substring(0, 19) + "+08";
 
-        // 查詢該長者最後一筆
-        const { data: lastRecord, error: fetchError } = await supabase
-            .from(table)
-            .select("event_id")
-            .eq("elder_user_id", newConsultation.elder_user_id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        if (fetchError) {
-            return res.status(500).json({ success: false, message: "查詢失敗" });
-        }
-
-        // 自動產生新的 event_id
-        let newEventId = "Event1";
-        if (lastRecord?.event_id) {
-            const lastNum = parseInt(lastRecord.event_id.replace("Event", ""), 10);
-            newEventId = `Event${lastNum + 1}`;
-        }
-
-        // 新增資料（直接使用 req.body）
-        const { data, error: insertError } = await supabase
-            .from(table)
-            .insert([{ ...newConsultation, event_id: newEventId, updated_at: null }])
-            .select()
-            .maybeSingle();
-
-        if (insertError) {
-            return res.status(500).json({ success: false, message: "新增資料時發生錯誤" });
-        }
-
-        res.status(201).json({
-            success: true,
-            data,
-        });
-    } 
-    catch {
-    res.status(500).json({ success: false, message: "伺服器錯誤" });
+    if (!newConsultation.elder_user_id) {
+      return res.status(400).json({ success: false, message: "缺少長者ID" });
     }
+
+    // 查詢該長者最後一筆
+    const { data: lastRecord, error: fetchError } = await supabase
+      .from(table)
+      .select("event_id")
+      .eq("elder_user_id", newConsultation.elder_user_id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError) {
+      return res.status(500).json({ success: false, message: "查詢失敗" });
+    }
+
+    // 自動產生新的 event_id
+    let newEventId = "Event1";
+    if (lastRecord?.event_id) {
+      const lastNum = parseInt(lastRecord.event_id.replace("Event", ""), 10);
+      newEventId = `Event${lastNum + 1}`;
+    }
+
+    // 新增資料（直接使用 req.body）
+    const { data, error: insertError } = await supabase
+      .from(table)
+      .insert([{ ...newConsultation, event_id: newEventId, updated_at: null }])
+      .select()
+      .maybeSingle();
+
+    if (insertError) {
+      return res
+        .status(500)
+        .json({ success: false, message: "新增資料時發生錯誤" });
+    }
+
+    res.status(201).json({
+      success: true,
+      data,
+    });
+  } catch {
+    res.status(500).json({ success: false, message: "伺服器錯誤" });
+  }
 });
 
 // 5. 更新血壓紀錄
 router.patch("/:elder_user_id/:event_id", async (req, res) => {
-  try{
-    const { elder_user_id,event_id } = req.params;
+  try {
+    const { elder_user_id, event_id } = req.params;
     const updates = req.body;
-  
+
     const { data, error } = await supabase
       .from(table)
       .update({ ...updates, updated_at: new Date() })
       .eq("elder_user_id", elder_user_id)
-      .eq("event_id",event_id)
+      .eq("event_id", event_id)
       .select()
       .maybeSingle();
-  
-    if (error) return res.status(400).json({ success: false, message: error.message });
+
+    if (error)
+      return res.status(400).json({ success: false, message: error.message });
     res.json({ success: true, data });
-  }
-  catch{
+  } catch {
     res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
 
 // 6. 刪除血壓紀錄
 router.delete("/:elder_user_id/:event_id", async (req, res) => {
-  try{
-    const { elder_user_id,event_id } = req.params;
+  try {
+    const { elder_user_id, event_id } = req.params;
 
     const { error } = await supabase
       .from(table)
       .delete()
       .eq("elder_user_id", elder_user_id)
-      .eq("event_id",event_id);
-  
-    if (error) return res.status(400).json({ success: false, message: error.message });
+      .eq("event_id", event_id);
+
+    if (error)
+      return res.status(400).json({ success: false, message: error.message });
     res.json({ message: "血壓紀錄項目已刪除" });
-  }
-  catch{
+  } catch {
     res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });

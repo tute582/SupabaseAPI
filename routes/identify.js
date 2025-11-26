@@ -18,7 +18,7 @@ router.get("/:id", async (req, res) => {
     if (volunteerError) throw volunteerError;
 
     if (volunteer) {
-      return res.json({ success: true , role: "志工", data: volunteer });
+      return res.json({ success: true, role: "志工", data: volunteer });
     }
 
     // 2️⃣ 若不是志工，查長者資訊
@@ -31,7 +31,7 @@ router.get("/:id", async (req, res) => {
     if (elderError) throw elderError;
 
     if (elder) {
-      return res.json({ success: true , role: "長者", data: elder });
+      return res.json({ success: true, role: "長者", data: elder });
     }
 
     // 3️⃣ 若兩個資料表都沒找到

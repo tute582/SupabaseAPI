@@ -38,13 +38,11 @@ router.post("/", async (req, res) => {
   try {
     const { elder_user_id } = req.body;
     if (!elder_user_id) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "缺少 elder_user_id",
-          advice: "請點擊右上角[未登入]按鈕進行登入",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "缺少 elder_user_id",
+        advice: "請點擊右上角[未登入]按鈕進行登入",
+      });
     }
 
     // 📌 取得最近的7筆資料
@@ -80,13 +78,11 @@ router.post("/", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "伺服器錯誤",
-        errorDetail: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "伺服器錯誤",
+      errorDetail: err.message,
+    });
   }
 });
 
