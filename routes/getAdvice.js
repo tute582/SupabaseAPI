@@ -10,52 +10,27 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 console.log("GEMINI_API_KEY:", GEMINI_API_KEY);
 
 // Helper: 呼叫 Gemini HTTP API
-export async function getGeminiVisionResponse(prompt, imageBase64, mimeType) {
+export async function getGeminiResponse(prompt) {
   try {
-    // 檢查是否有圖片資料
-    const parts = [{ text: prompt }];
-
-    if (imageBase64 && mimeType) {
-      parts.push({
-        inlineData: {
-          mimeType: mimeType, // 例如 "image/jpeg"
-          data: imageBase64, // 前端傳來的 Base64 字串 (不含前綴)
-        },
-      });
-    }
-
     const payload = {
-      contents: [{ parts: parts }],
-      // 建議加入這個設定，強迫回傳 JSON
-      generationConfig: {
-        responseMimeType: "application/json",
-      },
+      contents: [{ parts: [{ text: prompt }] }],
     };
 
-    // 使用 gemini-1.5-flash 或 gemini-1.5-pro
-    // 注意：模型名稱修正為 1.5 系列
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`;
 
     const response = await axios.post(url, payload, {
       headers: { "Content-Type": "application/json" },
     });
 
-    const replyText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const reply =
+      response.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "AI 無法提供建議";
 
-    if (!replyText) throw new Error("AI 回傳內容為空");
-
-    // 因為我們要求回傳 JSON，這裡可以嘗試 parse 看看是否成功
-    try {
-      const jsonResult = JSON.parse(replyText);
-      return { success: true, data: jsonResult };
-    } catch (e) {
-      // 萬一 AI 還是回傳了文字雜訊，就回傳純文字
-      return { success: true, text: replyText };
-    }
+    return { success: true, text: reply };
   } catch (err) {
-    const errorMessage = err.response?.data?.error?.message || err.message;
+    const errorMessage = err.response?.data || err.message;
     console.error("Gemini API error:", errorMessage);
-    return { success: false, error: errorMessage };
+    return { success: false, text: "AI 回覆失敗", error: errorMessage };
   }
 }
 
