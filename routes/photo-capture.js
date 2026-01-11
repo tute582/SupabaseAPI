@@ -83,8 +83,7 @@ router.post("/", async (req, res) => {
         console.error("JSON 解析兩次皆失敗，原始文字:", aiResponse.text);
         return res.status(502).json({
           success: false,
-          message: "AI 回傳格式錯誤，無法解析",
-          rawText: aiResponse.text,
+          message: ("AI 回傳格式錯誤，無法解析", aiResponse.text),
         });
       }
     }
