@@ -65,12 +65,28 @@ router.post("/", async (req, res) => {
     try {
       parsedData = JSON.parse(aiResponse.text);
     } catch (parseError) {
-      console.error("JSON 解析失敗，原始文字:", aiResponse.text);
-      return res.status(502).json({
-        success: false,
-        message: "AI 回傳格式錯誤，無法解析",
-        rawText: aiResponse.text,
-      });
+      //如果輸出的格式錯誤
+      prompt = `
+      以下內容不是合法 JSON，請你「只修正格式」，不要新增或刪除任何資料。
+      請只輸出「純 JSON 字串」，不要任何說明或標記。
+
+      錯誤內容如下：
+      ${aiResponse.text}
+      `;
+
+      // 呼叫 Gemini HTTP API
+      let tryTwoAiResponse = await getGeminiResponse(summaryText, base64);
+
+      try {
+        parsedData = JSON.parse(tryTwoAiResponse.text);
+      } catch {
+        console.error("JSON 解析兩次皆失敗，原始文字:", aiResponse.text);
+        return res.status(502).json({
+          success: false,
+          message: "AI 回傳格式錯誤，無法解析",
+          rawText: aiResponse.text,
+        });
+      }
     }
 
     return res.status(200).json({
