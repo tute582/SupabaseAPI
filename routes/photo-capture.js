@@ -41,6 +41,7 @@ router.post("/", async (req, res) => {
       "patient_info": {
         "visit_date": "YYYY-MM-DD",
         "follow_up_date": "YYYY-MM-DD", 
+        "follow_up_time": "HH:MM",
         "days_supply": "給藥天數(整數)"
       },
       "medications": [
