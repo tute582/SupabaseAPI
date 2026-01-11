@@ -30,10 +30,6 @@ export async function getGeminiResponse(prompt, imageBase64 = null) {
 
     const payload = {
       contents: [{ parts: parts }],
-      // 強制要求輸出 JSON (Gemini 1.5 特性)
-      generationConfig: {
-        responseMimeType: "application/json",
-      },
     };
 
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`;
