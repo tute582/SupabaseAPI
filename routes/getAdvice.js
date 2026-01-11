@@ -54,7 +54,6 @@ export async function getGeminiResponse(prompt, imageBase64 = null) {
       success: false,
       text: "AI 回覆失敗",
       error: errorMessage,
-      prompt: payload,
     };
   }
 }
