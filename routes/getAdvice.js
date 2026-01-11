@@ -49,7 +49,7 @@ export async function getGeminiResponse(prompt, imageBase64 = null) {
     return {
       success: false,
       text: "AI 回覆失敗",
-      error: errorMessage,
+      error: JSON.stringify(errorMessage),
     };
   }
 }
