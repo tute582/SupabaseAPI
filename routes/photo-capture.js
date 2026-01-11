@@ -64,7 +64,7 @@ router.post("/", async (req, res) => {
     let parsedData;
     let cleanedText = extractJson(aiResponse.text); //本地清洗多餘JSON格式
     try {
-      parsedData = JSON.parse(cleanedText.text);
+      parsedData = JSON.parse(cleanedText);
     } catch (parseError) {
       //如果輸出的格式錯誤
       summaryText = `
