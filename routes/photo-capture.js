@@ -80,7 +80,7 @@ router.post("/", async (req, res) => {
         - 加任何說明文字
 
         內容如下：
-        ${cleanedText}
+        ${parsedData.text}
         `;
 
       // 呼叫 Gemini HTTP API
