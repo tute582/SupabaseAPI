@@ -66,7 +66,7 @@ router.post("/", async (req, res) => {
       parsedData = JSON.parse(aiResponse.text);
     } catch (parseError) {
       //如果輸出的格式錯誤
-      prompt = `
+      summaryText = `
       以下內容不是合法 JSON，請你「只修正格式」，不要新增或刪除任何資料。
       請只輸出「純 JSON 字串」，不要任何說明或標記。
 
@@ -75,7 +75,7 @@ router.post("/", async (req, res) => {
       `;
 
       // 呼叫 Gemini HTTP API
-      let tryTwoAiResponse = await getGeminiResponse(summaryText, base64);
+      let tryTwoAiResponse = await getGeminiResponse(summaryText);
 
       try {
         parsedData = JSON.parse(tryTwoAiResponse.text);
