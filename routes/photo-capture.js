@@ -30,7 +30,6 @@ router.post("/", async (req, res) => {
     5. 若有多張圖片，請自行整併資訊，去除重複內容。
     
     請依照此 JSON 結構輸出：
-    
     {
       "hospital_info": {
         "name": "醫院或診所名稱",
