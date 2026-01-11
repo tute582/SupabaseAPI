@@ -10,10 +10,30 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 console.log("GEMINI_API_KEY:", GEMINI_API_KEY);
 
 // Helper: 呼叫 Gemini HTTP API
-export async function getGeminiResponse(prompt) {
+export async function getGeminiResponse(prompt, imageBase64 = null) {
   try {
+    // const payload = {
+    //   contents: [{ parts: [{ text: prompt }] }],
+    // };
+
+    const parts = [{ text: prompt }];
+
+    // 如果有傳圖片，就加入 inlineData
+    if (imageBase64) {
+      parts.push({
+        inlineData: {
+          mimeType: "image/jpeg", // 假設前端傳來的是 jpeg
+          data: imageBase64, // 這裡只放純 Base64 字串
+        },
+      });
+    }
+
     const payload = {
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ parts: parts }],
+      // 強制要求輸出 JSON (Gemini 1.5 特性)
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
     };
 
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`;
@@ -30,7 +50,12 @@ export async function getGeminiResponse(prompt) {
   } catch (err) {
     const errorMessage = err.response?.data || err.message;
     console.error("Gemini API error:", errorMessage);
-    return { success: false, text: "AI 回覆失敗", error: errorMessage };
+    return {
+      success: false,
+      text: "AI 回覆失敗",
+      error: errorMessage,
+      prompt: payload,
+    };
   }
 }
 
