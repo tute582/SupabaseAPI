@@ -84,6 +84,7 @@ router.post("/", async (req, res) => {
         return res.status(502).json({
           success: false,
           message: ("AI 回傳格式錯誤，無法解析", aiResponse.text),
+          rawText: aiResponse.text,
         });
       }
     }
