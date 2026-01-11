@@ -63,25 +63,16 @@ router.post("/", async (req, res) => {
     // 4. JSON 解析與防呆處理
     let parsedData;
     try {
-      parsedData = JSON.parse(parsedData.text);
+      parsedData = JSON.parse(aiResponse.text);
     } catch (parseError) {
       //如果輸出的格式錯誤
       summaryText = `
-        請將以下內容轉換為「合法 JSON」。
+      以下內容不是合法 JSON，請你「只修正格式」，不要新增或刪除任何資料。
+      請只輸出「純 JSON 字串」，不要任何說明或標記。
 
-        ⚠️ 僅允許：
-        - 修正語法錯誤
-        - 移除 Markdown 標記
-        - 補齊缺失引號或逗號
-
-        ❌ 禁止：
-        - 改動欄位
-        - 新增或刪除資料
-        - 加任何說明文字
-
-        內容如下：
-        ${parsedData.text}
-        `;
+      錯誤內容如下：
+      ${aiResponse.text}
+      `;
 
       // 呼叫 Gemini HTTP API
       let tryTwoAiResponse = await getGeminiResponse(summaryText);
