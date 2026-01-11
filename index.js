@@ -11,11 +11,14 @@ import checkRemindersRouter from "./routes/check-reminders.js";
 import bloodPressreRouter from "./routes/blood-pressre.js";
 import getAdviceRouter from "./routes/getAdvice.js";
 import matchRouter from "./routes/match.js";
-import testRouter from "./routes/test.js";
+import photoCaptureRouter from "./routes/photo-capture.js";
 
 const app = express();
-app.use(cors());                // ✅ 允許跨域請求
-app.use(express.json());
+// ✅ 允許跨域請求
+app.use(cors());
+// 設定 JSON 請求體最大限制 (建議 50MB 以涵蓋高解析圖片)
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // 掛載「預約志工」路由
 app.use("/appointments", appointmentsRouter);
@@ -37,8 +40,8 @@ app.use("/check-reminders", checkRemindersRouter);
 app.use("/getAdvice", getAdviceRouter);
 // 掛載「AI配對」路由
 app.use("/match", matchRouter);
-// 掛載「AI配對test」路由
-app.use("/test", testRouter);
+// 掛載「圖片擷取」路由
+app.use("/photoCapture", photoCaptureRouter);
 
 app.listen(3001, () => {
   console.log("Server running at http://localhost:3001");
