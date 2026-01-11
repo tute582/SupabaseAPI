@@ -68,7 +68,7 @@ router.post("/", async (req, res) => {
       //如果輸出的格式錯誤
       summaryText = `
       以下內容不是合法 JSON，請你「只修正格式」，不要新增或刪除任何資料。
-      請只輸出「純 JSON 字串」，不要任何說明或標記。
+      請嚴格輸出「純 JSON 字串」，不要使用 Markdown code block、不要加任何換行或說明文字。
 
       錯誤內容如下：
       ${aiResponse.text}
