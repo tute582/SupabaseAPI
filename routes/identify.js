@@ -34,7 +34,20 @@ router.get("/:id", async (req, res) => {
       return res.json({ success: true, role: "長者", data: elder });
     }
 
-    // 3️⃣ 若兩個資料表都沒找到
+    // 2️⃣ 若不是志工、長者，查家屬資訊
+    const { data: family, error: familyError } = await supabase
+      .from("famil_information")
+      .select("*")
+      .eq("family_user_id", id)
+      .maybeSingle();
+
+    if (familyError) throw familyError;
+
+    if (family) {
+      return res.json({ success: true, role: "家屬", data: family });
+    }
+
+    // 3️⃣ 若三個資料表都沒找到
     return res.json({ success: false });
   } catch (error) {
     res.status(500).json({ success: false, message: "伺服器錯誤" });
