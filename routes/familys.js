@@ -1,7 +1,7 @@
 import express from "express";
 import supabase from "../supabaseClient.js";
 const router = express.Router();
-const table = "famil_information";
+const table = "family_information";
 
 // 1. 取得所有家屬資訊
 router.get("/", async (req, res) => {
