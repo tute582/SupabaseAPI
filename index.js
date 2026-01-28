@@ -6,7 +6,8 @@ import consultationsRouter from "./routes/consultations.js";
 import identifyRouter from "./routes/identify.js";
 import appointmentsRouter from "./routes/appointments.js";
 import eldersRouter from "./routes/elders.js";
-import schedulesRouter from "./routes/schedules.js";
+import photoCaptureRouter from "./routes/photo-capture.js";
+import familysRouter from "./routes/familys.js";
 import checkRemindersRouter from "./routes/check-reminders.js";
 import bloodPressreRouter from "./routes/blood-pressre.js";
 import getAdviceRouter from "./routes/getAdvice.js";
@@ -26,6 +27,8 @@ app.use("/appointments", appointmentsRouter);
 app.use("/consultations", consultationsRouter);
 // 掛載「長者資訊」路由
 app.use("/elders", eldersRouter);
+// 掛載「家屬資訊」路由
+app.use("/familys", familysRouter);
 // 掛載「身分辨別」路由
 app.use("/identify", identifyRouter);
 // 掛載「行事曆」路由
