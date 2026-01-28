@@ -116,28 +116,52 @@ router.get(
   }
 );
 
-// 7. 取得志工對應的長者姓名（根據 volunteer_user_id)
+// 7. 取得志工對應的長者姓名與 ID（根據 volunteer_user_id)
 router.get("/by-volunteer/:volunteer_user_id", async (req, res) => {
   try {
     const { volunteer_user_id } = req.params;
 
     const { data, error } = await supabase
       .from(table)
-      .select("elder_name") // 只取 elder_user_id 欄位
+      .select("elder_user_id, elder_name")
       .eq("volunteer_user_id", volunteer_user_id);
 
-    if (error || !data) {
-      return res.status(404).json({ success: false, message: error.message });
+    if (error) {
+      console.error("Supabase Error:", error);
+      return res.status(400).json({ success: false, message: error.message });
     }
 
-    // 去除重複長者名稱
-    const uniqueNames = [...new Set(data.map((d) => d.elder_name))];
+    if (!data || data.length === 0) {
+      // 查無資料時回傳空陣列
+      return res.json({ success: true, list: [] });
+    }
+
+    // --- 資料處理關鍵 ---
+    // 使用 Map 來去除重複的 elder_user_id (防止同一位長者有多筆紀錄導致重複顯示)
+    const uniqueEldersMap = new Map();
+
+    data.forEach((item) => {
+      // 如果這個 ID 還沒出現過，就加進去
+      if (item.elder_user_id && !uniqueEldersMap.has(item.elder_user_id)) {
+        uniqueEldersMap.set(item.elder_user_id, {
+          elder_id: item.elder_user_id,      // 這裡回傳完整 ID
+          elder_name: item.elder_name,
+          // 提供前端末五碼顯示
+          elder_display_id: item.elder_user_id.slice(-5) 
+        });
+      }
+    });
+
+    // 將 Map 轉回陣列
+    const elderList = Array.from(uniqueEldersMap.values());
 
     res.json({
       success: true,
-      elder_name: uniqueNames,
+      data: elderList,
     });
-  } catch {
+
+  } catch (err) {
+    console.error("Server Error:", err);
     res.status(500).json({ success: false, message: "伺服器錯誤" });
   }
 });
