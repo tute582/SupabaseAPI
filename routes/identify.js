@@ -36,7 +36,7 @@ router.get("/:id", async (req, res) => {
 
     // 2️⃣ 若不是志工、長者，查家屬資訊
     const { data: family, error: familyError } = await supabase
-      .from("family_information")
+      .from("家屬資訊")
       .select("*")
       .eq("family_user_id", id)
       .maybeSingle();
