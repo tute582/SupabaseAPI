@@ -166,7 +166,7 @@ router.post("/", async (req, res) => {
         if (!IsTimeOverlap(v.available_times,date,time)) return null;  //修改function(SJY)
         return res
           .status(400)
-          .json({ success: false, message: err,v.available_times });
+          .json({ success: false, message: err.message });
 
         // 計算距離
         const vLat = v.location?.lat;
