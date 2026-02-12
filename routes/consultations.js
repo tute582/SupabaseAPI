@@ -4,11 +4,18 @@ const router = express.Router();
 const table = "看診資訊";
 
 // 之後可以改為共用function 所有request中如果回傳空字串，一律改成null
-const cleanEmptyStrings = (obj) => {
+// 修改後的清洗函式：只針對「日期欄位」將空字串轉為 null
+const cleanDataForDb = (obj) => {
   const newObj = { ...obj };
+  // 這裡列出資料庫中型態為 timestamp 的欄位名稱
+  const timestampFields = ["visit_time", "next_visit_time", "created_at", "updated_at"];
+
   Object.keys(newObj).forEach(key => {
-    if (newObj[key] === "") {
-      newObj[key] = null;
+    if (timestampFields.includes(key) && newObj[key] === "") {
+      newObj[key] = null; // 日期欄位空字串必須轉 null
+    } else if (newObj[key] === null) {
+      // 如果例如前端傳 null 過來，文字欄位轉回 ""
+      newObj[key] = ""; 
     }
   });
   return newObj;
