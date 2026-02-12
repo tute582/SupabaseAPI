@@ -90,7 +90,6 @@ async function getPersonalityEmbedding(text) {
 
 // ⏳ 時間重疊檢查  預設迴圈次數為3(SJY測試)
 function IsTimeOverlap(vDateTimes, eDate, eTime) {
-  try{
   for (let i = 0; i < 3; i++) {
       const [date, time] = vDatetimes[i].split(" ");
   
@@ -104,14 +103,8 @@ function IsTimeOverlap(vDateTimes, eDate, eTime) {
   
     console.log("沒有符合的時間");
     return false;
-  }catch(err)
-    {
-      return res
-        .status(500)
-        .json({ success: false,vDateTimes ,message:err.message });
-    }
   }
-  
+      
 
 // ======================
 // 🚀 API：志工配對
