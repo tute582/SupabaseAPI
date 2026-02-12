@@ -90,7 +90,7 @@ async function getPersonalityEmbedding(text) {
 
 // ⏳ 時間重疊檢查  預設迴圈次數為3(SJY測試)
 function IsTimeOverlap(v, eDate, eTime) {
- var vDateTime = v
+ const vDateTime = v
     for (let i = 0; i < 3; i++) {
       const [date, time] = vDatetime[i].split(" ");
   
@@ -169,7 +169,7 @@ router.post("/", async (req, res) => {
         {
         return res
           .status(400)
-          .json({ success: false, message: err.message });
+          .json({ success: false, message: err.message ,v });
         }
 
         // 計算距離
