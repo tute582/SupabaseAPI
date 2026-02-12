@@ -106,7 +106,9 @@ function IsTimeOverlap(vDateTimes, eDate, eTime) {
     return false;
   }catch(err)
     {
-      return res.status(500).json({ success: false,vDateTimes ,message:err.message });
+      return res
+        .status(500)
+        .json({ success: false,vDateTimes ,message:err.message });
     }
   }
   
