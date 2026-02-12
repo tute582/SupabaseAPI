@@ -92,7 +92,7 @@ router.get("/:elder_user_id/:event_id", async (req, res) => {
 // 4. 新增看診資訊
 router.post("/", async (req, res) => {
   try {
-    const newConsultation = cleanEmptyStrings(req.body);
+    const newConsultation = cleanDataForDb(req.body);
     const now = new Date();
     const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
     newConsultation.created_at =
@@ -148,7 +148,7 @@ router.post("/", async (req, res) => {
 router.patch("/:elder_user_id/:event_id", async (req, res) => {
   try {
     const { elder_user_id, event_id } = req.params;
-    const updates = { ...cleanEmptyStrings(req.body), updated_at: new Date() };
+    const updates = { ...cleanDataForDb(req.body), updated_at: new Date() };
 
     const { data, error } = await supabase
       .from(table)
