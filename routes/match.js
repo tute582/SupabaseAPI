@@ -163,10 +163,14 @@ router.post("/", async (req, res) => {
         if (v.gender !== elderGender) return null;
 
         // 條件篩選 2: 時間重疊   function重寫(SJY) 加api 錯誤判斷(SJY)
+        try{
         if (!IsTimeOverlap(v.available_times,date,time)) return null;  //修改function(SJY)
+        }catch(err)
+        {
         return res
           .status(400)
           .json({ success: false, message: err.message });
+        }
 
         // 計算距離
         const vLat = v.location?.lat;
