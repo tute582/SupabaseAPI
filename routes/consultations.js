@@ -3,6 +3,17 @@ import supabase from "../supabaseClient.js";
 const router = express.Router();
 const table = "看診資訊";
 
+// 之後可以改為共用function 所有request中如果回傳空字串，一律改成null
+const cleanEmptyStrings = (obj) => {
+  const newObj = { ...obj };
+  Object.keys(newObj).forEach(key => {
+    if (newObj[key] === "") {
+      newObj[key] = null;
+    }
+  });
+  return newObj;
+};
+
 // 1. 取得全部看診資訊
 router.get("/", async (req, res) => {
   try {
@@ -74,7 +85,7 @@ router.get("/:elder_user_id/:event_id", async (req, res) => {
 // 4. 新增看診資訊
 router.post("/", async (req, res) => {
   try {
-    const newConsultation = req.body;
+    const newConsultation = cleanEmptyStrings(req.body);
     const now = new Date();
     const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
     newConsultation.created_at =
@@ -130,7 +141,7 @@ router.post("/", async (req, res) => {
 router.patch("/:elder_user_id/:event_id", async (req, res) => {
   try {
     const { elder_user_id, event_id } = req.params;
-    const updates = { ...req.body, updated_at: new Date() };
+    const updates = { ...cleanEmptyStrings(req.body), updated_at: new Date() };
 
     const { data, error } = await supabase
       .from(table)
