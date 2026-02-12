@@ -90,6 +90,7 @@ async function getPersonalityEmbedding(text) {
 
 // ⏳ 時間重疊檢查  預設迴圈次數為3(SJY測試)
 function IsTimeOverlap(vDateTimes, eDate, eTime) {
+  try{
   for (let i = 0; i < 3; i++) {
       const [date, time] = vDatetimes[i].split(" ");
   
@@ -103,6 +104,10 @@ function IsTimeOverlap(vDateTimes, eDate, eTime) {
   
     console.log("沒有符合的時間");
     return false;
+  }catch(err)
+    {
+      return res.status(500).json({ success: false,vDateTimes ,message:err.message });
+    }
   }
   
 
@@ -161,16 +166,10 @@ router.post("/", async (req, res) => {
         // 條件篩選 1: 性別 (若業務強制同性別)
         if (v.gender !== elderGender) return null;
 
-        // 條件篩選 2: 時間重疊   function重寫(SJY) 加api 錯誤判斷(SJY)
-        // try{
-        // if (!IsTimeOverlap(v.available_times,date,time)) return null;  //修改function(SJY)
-        // }catch(err)
-        // {
-        // return res
-        //   .status(400)
-        //   .json({ success: false, message: err.message ,v.available_times});
-        // }
-
+        // 條件篩選 2: 時間重疊   function重寫(SJY) 
+        
+        if (!IsTimeOverlap(v.available_times,date,time)) return null;  //修改function(SJY)
+        
         // 計算距離
         const vLat = v.location?.lat;
         const vLng = v.location?.lng;
