@@ -131,8 +131,8 @@ router.post("/", async (req, res) => {
     //     .status(400)
     //     .json({ success: false, message: "日期或時間格式錯誤" });
 
-    // const elderLat = location.lat;
-    // const elderLng = location.lng;
+    const elderLat = location.lat;
+    const elderLng = location.lng;
 
     // 1. 取得長者資料
     const { data: elder, error: elderError } = await supabase
