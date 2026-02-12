@@ -89,22 +89,23 @@ async function getPersonalityEmbedding(text) {
 }
 
 // ⏳ 時間重疊檢查
-function isTimeOverlap(volTimes, elderDateTime) {
-  if (!Array.isArray(volTimes)) return false;
-  const elderTimestamp = elderDateTime.getTime();
-  return volTimes.some((t) => {
-    // 預期格式: "YYYY-MM-DD HH:MM-HH:MM"
-    const [datePart, hours] = t.split(" ");
-    const [startHour, endHour] = hours.split("-");
+function IsTimeOverlap(v, eDate, eTime) {
 
-    // 注意: 這假設 startHour 和 endHour 格式是 HH:MM
-    const start = new Date(`${datePart}T${startHour}:00`).getTime();
-    const end = new Date(`${datePart}T${endHour}:00`).getTime();
-
-    // 檢查長者指定時間是否在志工的可用區間內 (包含邊界)
-    return start <= elderTimestamp && elderTimestamp < end;
-  });
-}
+    for (let i = 0; i < v.length; i++) {
+      const [date, time] = v[i].split(" ");
+  
+      if (date === eDate) {
+        if (eTime >= time) {
+          console.log("時間符合");
+          return true;
+        }
+      }
+    }
+  
+    console.log("沒有符合的時間");
+    return false;
+  }
+  
 
 // ======================
 // 🚀 API：志工配對
@@ -123,15 +124,15 @@ router.post("/", async (req, res) => {
         .status(400)
         .json({ success: false, message: "長者未設定經緯度" });
 
-    // 轉換時間為 Date 物件
-    const elderDateTime = new Date(`${date}T${time}:00`);
-    if (isNaN(elderDateTime.getTime()))
-      return res
-        .status(400)
-        .json({ success: false, message: "日期或時間格式錯誤" });
+    // 轉換時間為 Date 物件  不轉換(SJY)
+    // const elderDateTime = new Date(`${date}T${time}:00`);
+    // if (isNaN(elderDateTime.getTime()))
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "日期或時間格式錯誤" });
 
-    const elderLat = location.lat;
-    const elderLng = location.lng;
+    // const elderLat = location.lat;
+    // const elderLng = location.lng;
 
     // 1. 取得長者資料
     const { data: elder, error: elderError } = await supabase
@@ -161,8 +162,8 @@ router.post("/", async (req, res) => {
         // 條件篩選 1: 性別 (若業務強制同性別)
         if (v.gender !== elderGender) return null;
 
-        // 條件篩選 2: 時間重疊
-        if (!isTimeOverlap(v.available_times, elderDateTime)) return null;
+        // 條件篩選 2: 時間重疊   function重寫(SJY)
+        if (!IsTimeOverlap(v.available_times,date,time)) return null;  //修改function(SJY)
 
         // 計算距離
         const vLat = v.location?.lat;
