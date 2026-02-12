@@ -90,9 +90,9 @@ async function getPersonalityEmbedding(text) {
 
 // ⏳ 時間重疊檢查  預設迴圈次數為3(SJY測試)
 function IsTimeOverlap(v, eDate, eTime) {
-
+ var vDateTime = v
     for (let i = 0; i < 3; i++) {
-      const [date, time] = v[i].split(" ");
+      const [date, time] = vDatetime[i].split(" ");
   
       if (date === eDate) {
         if (eTime >= time) {
