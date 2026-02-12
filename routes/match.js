@@ -88,10 +88,10 @@ async function getPersonalityEmbedding(text) {
   }
 }
 
-// ⏳ 時間重疊檢查
+// ⏳ 時間重疊檢查  預設迴圈次數為3(SJY測試)
 function IsTimeOverlap(v, eDate, eTime) {
 
-    for (let i = 0; i < v.length; i++) {
+    for (let i = 0; i < 3; i++) {
       const [date, time] = v[i].split(" ");
   
       if (date === eDate) {
