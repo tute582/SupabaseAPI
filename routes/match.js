@@ -205,7 +205,7 @@ router.post("/", async (req, res) => {
     });
   } catch (err) {
     console.error("AI 配對錯誤：", err);
-    return res.status(500).json({ success: false, message: err });  //查看log (SJY)
+    return res.status(500).json({ success: false, message: "伺服器錯誤" });  //查看log (SJY)
   }
 });
 export default router;
