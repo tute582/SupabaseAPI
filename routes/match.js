@@ -93,15 +93,12 @@ function IsTimeOverlap(vDateTimes, eDate, eTime) {
 
   if (!Array.isArray(vDateTimes)) return false;
 
-  const newDateTime = new Date(`${eDate}T${eTime}`);
-
   return vDateTimes.some(item => {
-    if (!item) return false;
+  if (!item) return false;
 
-    const dateTime = new Date(item.replace(" ", "T"));
-
-    return !isNaN(dateTime) && dateTime.getTime() === newDateTime.getTime();
-  });
+  const [date, time] = item.split(" ");
+  return date === eDate && time >= eTime;
+});
 }
       
 
@@ -154,33 +151,32 @@ router.post("/", async (req, res) => {
 
     if (volunteerError) throw volunteerError;
 
-    // 3. 匹配志工並計算分數  (測試 SJY)
-      try {
-    
-      const matchedVolsRaw = await Promise.all(
-        volunteers.map(async (v) => {
-          if (v.gender !== elderGender) return null;
-    
-          if (!IsTimeOverlap(v.available_times, date, time)) return null;
-    
-          return {
-            volunteer_user_id: v.volunteer_user_id,
-            volunteer_personality: v.personality,
-          };
-        })
-      );
-    
-      const matchedVols = matchedVolsRaw.filter(Boolean);
-    
-      return res.json(  success: true,matchedVols);
-    
-    } catch (err) {
-      console.error("Match error:", err);
-      return res.status(500).json({
-          message: err.message,
-          stack: err.stack
-        });
-    }
+    // 3. 匹配志工並計算分數
+    const matchedVols = await Promise.all(
+      volunteers.map(async (v) => {
+        // 條件篩選 1: 性別 (若業務強制同性別)
+        if (v.gender !== elderGender) return null;
+
+        // 條件篩選 2: 時間重疊   function重寫(SJY) 
+        
+        if (!IsTimeOverlap(v.available_times,date,time)) return null;  //修改function(SJY)
+        
+        // 計算距離
+        const vLat = v.location?.lat;
+        const vLng = v.location?.lng;
+        const distance =
+          vLat && vLng
+            ? getDistanceFromLatLng(elderLat, elderLng, vLat, vLng)
+            : null; // 無法計算距離
+
+        return {
+          volunteer_user_id: v.volunteer_user_id,
+          volunteer_personality: v.personality,
+        };
+      })
+    );
+
+    const filteredVols = matchedVols.filter((v) => v != null);
 
     // 組成 prompt
     let summaryText = `幫我針對這位長者偏好特質，安排最適合他的志工以最適合到最不適合，回傳不要有多餘的文字，只要給我志工ID陣列，存放在陣列裡面就行，不要有任何格式化語法標註，比如 Markdown code block，也不需要任何換行符號等，只需要回傳陣列。\n`;
