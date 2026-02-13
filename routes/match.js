@@ -90,22 +90,16 @@ async function getPersonalityEmbedding(text) {
 
 // ⏳ 時間重疊檢查  預設迴圈次數為3(SJY測試)
 function IsTimeOverlap(vDateTimes, eDate, eTime) {
-   if (!Array.isArray(vDateTimes)) {
-    console.log("vDateTimes 不是陣列");
-    return false;
-  }
-  for (let i = 0; i < vDateTimes.length; i++) {
-      const [date, time] = vDateTimes[i].split(" ");
-  
-      if (date === eDate   &&  eTime >= time) {
-          console.log("時間符合");
-          return true;
-      }
-    }
-  
-    console.log("沒有符合的時間");
-    return false;
-  }
+
+  if (!Array.isArray(vDateTimes)) return false;
+
+  return vDateTimes.some(item => {
+  if (!item) return false;
+
+  const [date, time] = item.split(" ");
+  return date === eDate && time >= eTime;
+});
+}
       
 
 // ======================
