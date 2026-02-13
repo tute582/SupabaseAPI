@@ -93,15 +93,12 @@ function IsTimeOverlap(vDateTimes, eDate, eTime) {
 
   if (!Array.isArray(vDateTimes)) return false;
 
-  const newDateTime = new Date(`${eDate}T${eTime}`);
-
   return vDateTimes.some(item => {
-    if (!item) return false;
+  if (!item) return false;
 
-    const dateTime = new Date(item.replace(" ", "T"));
-
-    return !isNaN(dateTime) && dateTime <= newDateTime;
-  });
+  const [date, time] = item.split(" ");
+  return date === eDate && time >= eTime;
+});
 }
       
 
