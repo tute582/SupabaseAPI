@@ -91,13 +91,11 @@ async function getPersonalityEmbedding(text) {
 // ⏳ 時間重疊檢查  預設迴圈次數為3(SJY測試)
 function IsTimeOverlap(vDateTimes, eDate, eTime) {
   for (let i = 0; i < 3; i++) {
-      const [date, time] = vDatetimes[i].split(" ");
+      const [date, time] = vDateTimes[i].split(" ");
   
-      if (date === eDate) {
-        if (eTime >= time) {
+      if (date === eDate   &&  eTime >= time) {
           console.log("時間符合");
           return true;
-        }
       }
     }
   
@@ -163,7 +161,7 @@ router.post("/", async (req, res) => {
 
         // 條件篩選 2: 時間重疊   function重寫(SJY) 
         
-        // if (!IsTimeOverlap(v.available_times,date,time)) return null;  //修改function(SJY)
+        if (!IsTimeOverlap(v.available_times,date,time)) return null;  //修改function(SJY)
         
         // 計算距離
         const vLat = v.location?.lat;
