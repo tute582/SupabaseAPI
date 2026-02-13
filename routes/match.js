@@ -97,7 +97,7 @@ function IsTimeOverlap(vDateTimes, eDate, eTime) {
   if (!item) return false;
 
   const [date, time] = item.split(" ");
-  return date === eDate && time >= eTime;
+  return date === eDate && time <= eTime;
 });
 }
       
