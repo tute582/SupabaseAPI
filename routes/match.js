@@ -194,10 +194,11 @@ router.post("/", async (req, res) => {
     // 呼叫 Gemini HTTP API
     let matchResult = await getGeminiResponse(summaryText);
     matchResult = JSON.parse(matchResult.text);
-
+    // log (SJY)
     return res.status(200).json({
       success: true,
       count: matchResult.length,
+       filteredVols: filteredVols,
       volunteer_user_ids: matchResult,
     });
   } catch (err) {
