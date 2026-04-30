@@ -47,5 +47,5 @@ app.use("/match", matchRouter);
 app.use("/photoCapture", photoCaptureRouter);
 
 app.listen(3001, () => {
-  console.log("Server running at http://localhost:3001");
+  console.log("Server running at http://localhost:3001");  //啟用測試(終端機輸入)：node index.js
 });
