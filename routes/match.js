@@ -88,24 +88,19 @@ async function getPersonalityEmbedding(text) {
   }
 }
 
-// ⏳ 時間重疊檢查  預設迴圈次數為3(SJY測試)
-function IsTimeOverlap(v, eDate, eTime) {
+// ⏳ 時間重疊檢查  (SJY)
+function IsTimeOverlap(vDateTimes, eDate, eTime) {
 
-    for (let i = 0; i < 3; i++) {
-      const [date, time] = v[i].split(" ");
-  
-      if (date === eDate) {
-        if (eTime >= time) {
-          console.log("時間符合");
-          return true;
-        }
-      }
-    }
-  
-    console.log("沒有符合的時間");
-    return false;
-  }
-  
+  if (!Array.isArray(vDateTimes)) return false;
+
+  return vDateTimes.some(item => {
+  if (!item) return false;
+
+  const [date, time] = item.split(" ");
+  return date === eDate && time <= eTime;
+});
+}
+      
 
 // ======================
 // 🚀 API：志工配對
@@ -162,9 +157,10 @@ router.post("/", async (req, res) => {
         // 條件篩選 1: 性別 (若業務強制同性別)
         if (v.gender !== elderGender) return null;
 
-        // 條件篩選 2: 時間重疊   function重寫(SJY)
+        // 條件篩選 2: 時間重疊   function重寫(SJY) 
+        
         if (!IsTimeOverlap(v.available_times,date,time)) return null;  //修改function(SJY)
-
+        
         // 計算距離
         const vLat = v.location?.lat;
         const vLng = v.location?.lng;
@@ -198,15 +194,16 @@ router.post("/", async (req, res) => {
     // 呼叫 Gemini HTTP API
     let matchResult = await getGeminiResponse(summaryText);
     matchResult = JSON.parse(matchResult.text);
-
+    // log (SJY)
     return res.status(200).json({
       success: true,
       count: matchResult.length,
+       filteredVols: filteredVols,
       volunteer_user_ids: matchResult,
     });
   } catch (err) {
     console.error("AI 配對錯誤：", err);
-    return res.status(500).json({ success: false, message:err.message }); //log檢查 (SJY)
+    return res.status(500).json({ success: false, filteredVols: filteredVols ,message:err.message }); //log檢查 (SJY)
   }
 });
 export default router;
